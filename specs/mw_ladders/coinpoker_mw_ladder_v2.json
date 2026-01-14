@@ -1,0 +1,41 @@
+{
+  "label": "coinpoker_mw_ladder_v2",
+  "mw_ladder_schema_id": "mw_strategy_ladder_spec_v1",
+  "rungs": [
+    {
+      "rung_id": "reducer4p",
+      "applicability_predicate": { "predicate_kind": "players_range", "min_players": 4, "max_players": null },
+      "dependency_ids": {},
+      "assumption_guard_id": "92feb47c3c2f65f0f46495038ca2af9a1cb18dcba4fc8d2ae61d34572abd2a7b",
+      "output_requirements": []
+    },
+    {
+      "rung_id": "micro3",
+      "applicability_predicate": { "predicate_kind": "players_range", "min_players": 3, "max_players": 3 },
+      "dependency_ids": {},
+      "assumption_guard_id": "92feb47c3c2f65f0f46495038ca2af9a1cb18dcba4fc8d2ae61d34572abd2a7b",
+      "output_requirements": []
+    },
+    {
+      "rung_id": "baseline",
+      "applicability_predicate": { "predicate_kind": "always" },
+      "dependency_ids": {},
+      "assumption_guard_id": null,
+      "output_requirements": []
+    },
+    {
+      "rung_id": "hu_isolate",
+      "applicability_predicate": { "predicate_kind": "players_range", "min_players": 2, "max_players": 2 },
+      "dependency_ids": {},
+      "assumption_guard_id": "92feb47c3c2f65f0f46495038ca2af9a1cb18dcba4fc8d2ae61d34572abd2a7b",
+      "output_requirements": []
+    },
+    {
+      "rung_id": "failsafe",
+      "applicability_predicate": { "predicate_kind": "always" },
+      "dependency_ids": {},
+      "assumption_guard_id": null,
+      "output_requirements": []
+    }
+  ]
+}

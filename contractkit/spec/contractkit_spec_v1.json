@@ -1,0 +1,20 @@
+{
+  "contractkit_spec_id": "contractkit_spec_v1",
+  "doc": {
+    "normative_source": "ARCHIETECTURE.md",
+    "anchor_table": "0.3",
+    "canonicalization": "3.5.1",
+    "seatmap": "3.5.1.1",
+    "digest_object": "3.5.1.2",
+    "rounding_mode_enum": "3.12"
+  },
+  "controlled_enums": {
+    "rounding_mode": ["floor", "ceil", "nearest_ties_up"]
+  },
+  "hash": {
+    "alg": "sha256",
+    "hex_case": "lower",
+    "hex_len": 64
+  }
+}
+

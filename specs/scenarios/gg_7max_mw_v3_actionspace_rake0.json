@@ -1,0 +1,33 @@
+{
+  "abstraction_hash": "7da5cdd8012cae37510c4d8180bb3a69d46628bfe6ba03e0440b386694b5f439",
+  "label": "gg_7max_mw_v3_actionspace_rake0",
+  "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
+  "opponent_suite_id": "9073ac1652ac08cd400cb7aebad17d5b601142432bf49889358a623e8a302775",
+  "policy_id": "ff9c8ee60c856dd0439bfd51a2f00a756bdb17351b2a391b964a52ea564db973",
+  "population_id": null,
+  "postflop_ref": {
+    "artifact_ref": "artifact://b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932",
+    "digest": {
+      "alg": "sha256",
+      "hex": "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932"
+    }
+  },
+  "preflop_ref": {
+    "artifact_ref": "path:preflop/settings.json",
+    "digest": {
+      "alg": "sha256",
+      "hex": "34105cd7772bae6fbfd131adb0836951944829da122ee341b7d4f541193b4774"
+    }
+  },
+  "ruleset_id": "982282e4c790329837f6c1f7a59a9e84da80ed8abc7bd2fc1e706886d1ab3749",
+  "scenario_family_key": "c0f5a2fc887265393b3149d97e608be2fdd51d060f9181c2aa16f2a637920432",
+  "scenario_id": "cdb3f81398910787626e025eb1552ece5a7dae1677991aefae5eac98bfeafada",
+  "scenario_schema_id": "scenario_spec_v1",
+  "schema_hash": "43faa234b264b41ffcfafb2462638b93aac60e4f4570a893e2f7bb229ac4a6de",
+  "triad": {
+    "action_bins_id": "0cf03edecaa9b2e9ea723f1292b54211ae6312783d08ce18ba4c059a8323d3d2",
+    "obs_schema_id": "c5a709e2f24573aecbf740fdd51f5106ba396540b8060a335361d24cb76427ac",
+    "rake_id": "378d50badfb30a32a0304c08c80aa48d5252f22017db4380455e2313ec33e786"
+  },
+  "scenario_family_id": "c0f5a2fc887265393b3149d97e608be2fdd51d060f9181c2aa16f2a637920432"
+}

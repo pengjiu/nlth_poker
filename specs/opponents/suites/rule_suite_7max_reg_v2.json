@@ -1,0 +1,15 @@
+{
+  "opponent_suite_id": "9073ac1652ac08cd400cb7aebad17d5b601142432bf49889358a623e8a302775",
+  "opponent_suite_label": "rule_suite_7max_reg_v2",
+  "opponent_suite_schema_id": "opponent_suite_spec_v1",
+  "opponents": [
+    {"opponent_ref": "path:specs/opponents/rule_bot_reg.json"},
+    {"opponent_ref": "path:specs/opponents/rule_bot_reg.json"},
+    {"opponent_ref": "path:specs/opponents/rule_bot_reg.json"},
+    {"opponent_ref": "path:specs/opponents/rule_bot_reg.json"},
+    {"opponent_ref": "path:specs/opponents/rule_bot_reg.json"},
+    {"opponent_ref": "path:specs/opponents/rule_bot_reg.json"}
+  ],
+  "population_id": "0000000000000000000000000000000000000000000000000000000000000000",
+  "calibration_id": null
+}

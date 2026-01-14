@@ -1,0 +1,28 @@
+{
+  "opponent_suite_schema_id": "opponent_suite_spec_v1",
+  "opponent_suite_label": "system_bot_league_7max_frozen_v1",
+  "purpose": "baseline",
+  "population_id": "4afc69e27c47499e8a40d0be8e36437d46eea9f50846952cb8cc0a5efe2839a2",
+  "calibration_id": null,
+  "opponents": [
+    {
+      "opponent_ref": "path:specs/opponents/system_bot_tight_v6_frozen.json"
+    },
+    {
+      "opponent_ref": "path:specs/opponents/system_bot_balanced_v6_frozen.json"
+    },
+    {
+      "opponent_ref": "path:specs/opponents/system_bot_loose_v6_frozen.json"
+    },
+    {
+      "opponent_ref": "path:specs/opponents/system_bot_balanced_v6_frozen.json"
+    },
+    {
+      "opponent_ref": "path:specs/opponents/system_bot_tight_v6_frozen.json"
+    },
+    {
+      "opponent_ref": "path:specs/opponents/system_bot_loose_v6_frozen.json"
+    }
+  ],
+  "opponent_suite_id": "dee3a967a40462eb78a1eae1d7ef2728dadd5cf2fb0a0704fecf912da8c294d9"
+}

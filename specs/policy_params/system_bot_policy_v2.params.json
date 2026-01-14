@@ -1,0 +1,11 @@
+{
+  "policy_params_schema_id": "system_policy_params_v2",
+  "mw_strategy_table_digest": {
+    "alg": "sha256",
+    "hex": "7ab17ed3ce8d267681853ff3d3aba6cdfa88de2185efb938b75ee6d08198b885"
+  },
+  "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
+  "multiway_version": "v2",
+  "aggression_budget": "conservative",
+  "notes": "multiway ladder v2 + strategy table"
+}

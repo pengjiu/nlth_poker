@@ -1,0 +1,10 @@
+{
+  "policy_kind": "baseline",
+  "policy_label": "internal_baseline_policy_v1",
+  "policy_deps": [],
+  "policy_params_digest": {
+    "alg": "sha256",
+    "hex": "c0870be3b58ccac12ec71dbe69a94f775662f71105d42505bc155597c351a861"
+  },
+  "stochastic": false
+}

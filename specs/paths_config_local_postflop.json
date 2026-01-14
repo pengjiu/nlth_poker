@@ -1,0 +1,11 @@
+{
+  "roots": {
+    "scenario_root": "path:specs",
+    "artifacts_root": "path:artifacts",
+    "data_root": "path:data",
+    "postflop_solver_src_root": "/Users/peng/Workspace/gemini/postflop-solver",
+    "hrc_root": "/Users/peng/Documents/Hand2"
+  },
+  "search_order": ["hrc_root", "scenario_root", "artifacts_root", "data_root"],
+  "allow_symlink": true
+}

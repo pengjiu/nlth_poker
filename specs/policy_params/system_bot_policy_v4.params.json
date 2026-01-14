@@ -1,0 +1,21 @@
+{
+  "policy_params_schema_id": "system_policy_params_v4",
+  "mw_strategy_table_digest": {
+    "alg": "sha256",
+    "hex": "38533cc2333b630ce99271af2e88bc21f0db5858a1e6bab36d4518648886c025"
+  },
+  "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
+  "multiway_version": "v4",
+  "system_bot_params_digest": {
+    "alg": "sha256",
+    "hex": "5cc8baa4eec87731d3cf743a10a48b21aefa1f5f88e5f209db062b94f6394c05"
+  },
+  "safe_exploit_max_bp": 500,
+  "rake_delta_weight_bp": 3500,
+  "mw_risk_weight_bp": 40,
+  "oop_risk_weight_bp": 60,
+  "oop_spr_threshold_bp": 350,
+  "mw_keypot_trigger_bb": 40,
+  "keypot_streets": ["TURN", "RIVER"],
+  "notes": "rake-aware multiway + 3-way key pot solver trigger"
+}

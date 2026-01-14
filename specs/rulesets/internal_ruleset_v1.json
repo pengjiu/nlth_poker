@@ -1,0 +1,8 @@
+{
+  "game_kind": "NLHE",
+  "blinds": {"sb_chips": 1, "bb_chips": 2},
+  "ante": null,
+  "straddle": null,
+  "rake": {"pct_ppm": 50000, "cap_chips": null, "rounding_mode": "floor", "no_flop_no_drop": true},
+  "min_raise_rule": {"basis": "last_raise_increment", "reopen_on_short_allin": false}
+}

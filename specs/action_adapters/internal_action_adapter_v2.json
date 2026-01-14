@@ -1,0 +1,11 @@
+{
+  "action_adapter_schema_id": "action_adapter_spec_v1",
+  "rounding_mode": "nearest_ties_up",
+  "fallback_policy": {
+    "mode": "fail_fast"
+  },
+  "apply_bins": {
+    "bet_frac_bins_ref": "action_bins/internal_action_bins_v2.json",
+    "raise_add_frac_bins_ref": "action_bins/internal_action_bins_v2.json"
+  }
+}

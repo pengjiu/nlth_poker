@@ -1,0 +1,10 @@
+{
+  "params_schema_id": "system_bot_params_v5",
+  "safe_exploit_max_bp": 650,
+  "rake_delta_weight_bp": 3500,
+  "mw_risk_weight_bp": 25,
+  "oop_risk_weight_bp": 40,
+  "oop_spr_threshold_bp": 350,
+  "preflop_defend_tighten_bp": 900,
+  "mw_keypot_trigger_bb": 40
+}

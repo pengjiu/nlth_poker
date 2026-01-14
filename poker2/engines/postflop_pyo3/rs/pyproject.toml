@@ -1,0 +1,15 @@
+[build-system]
+requires = ["maturin>=1.6,<2"]
+build-backend = "maturin"
+
+[project]
+name = "postflop_solver"
+version = "0.1.0"
+requires-python = ">=3.8"
+description = "Lightweight postflop solver shim for poker2"
+authors = [{ name = "poker2" }]
+
+[tool.maturin]
+bindings = "pyo3"
+compatibility = "manylinux2014"
+strip = true

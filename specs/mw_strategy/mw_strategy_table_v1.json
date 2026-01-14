@@ -1,0 +1,167 @@
+{
+  "mw_strategy_schema_id": "mw_strategy_table_v1",
+  "entries": [
+    {
+      "rung_id": "reducer4p",
+      "min_players": 4,
+      "max_players": null,
+      "streets": [
+        "FLOP",
+        "TURN",
+        "RIVER"
+      ],
+      "facing_bet": true,
+      "fold_prob_bp": 3500,
+      "call_prob_bp": 3000,
+      "raise_prob_bp": 3500,
+      "raise_rank": 0
+    },
+    {
+      "rung_id": "reducer4p",
+      "min_players": 4,
+      "max_players": null,
+      "streets": [
+        "FLOP",
+        "TURN",
+        "RIVER"
+      ],
+      "facing_bet": false,
+      "bet_prob_bp": 7500,
+      "cbet_prob_bp": 8500,
+      "bet_rank": 0
+    },
+    {
+      "rung_id": "reducer4p",
+      "min_players": 4,
+      "max_players": null,
+      "streets": [
+        "PREFLOP"
+      ],
+      "facing_bet": true,
+      "fold_prob_bp": 3500,
+      "call_prob_bp": 2000,
+      "raise_prob_bp": 4500,
+      "raise_rank": 0
+    },
+    {
+      "rung_id": "reducer4p",
+      "min_players": 4,
+      "max_players": null,
+      "streets": [
+        "PREFLOP"
+      ],
+      "facing_bet": false,
+      "bet_prob_bp": 6000,
+      "cbet_prob_bp": 6000,
+      "bet_rank": 0
+    },
+    {
+      "rung_id": "micro3",
+      "min_players": 3,
+      "max_players": 3,
+      "streets": [
+        "FLOP",
+        "TURN",
+        "RIVER"
+      ],
+      "facing_bet": true,
+      "fold_prob_bp": 2500,
+      "call_prob_bp": 3500,
+      "raise_prob_bp": 4000,
+      "raise_rank": 0
+    },
+    {
+      "rung_id": "micro3",
+      "min_players": 3,
+      "max_players": 3,
+      "streets": [
+        "FLOP",
+        "TURN",
+        "RIVER"
+      ],
+      "facing_bet": false,
+      "bet_prob_bp": 8000,
+      "cbet_prob_bp": 9000,
+      "bet_rank": 0
+    },
+    {
+      "rung_id": "micro3",
+      "min_players": 3,
+      "max_players": 3,
+      "streets": [
+        "PREFLOP"
+      ],
+      "facing_bet": true,
+      "fold_prob_bp": 3000,
+      "call_prob_bp": 2500,
+      "raise_prob_bp": 4500,
+      "raise_rank": 0
+    },
+    {
+      "rung_id": "micro3",
+      "min_players": 3,
+      "max_players": 3,
+      "streets": [
+        "PREFLOP"
+      ],
+      "facing_bet": false,
+      "bet_prob_bp": 6500,
+      "cbet_prob_bp": 6500,
+      "bet_rank": 0
+    },
+    {
+      "rung_id": "baseline",
+      "min_players": 3,
+      "max_players": null,
+      "streets": [
+        "FLOP",
+        "TURN",
+        "RIVER"
+      ],
+      "facing_bet": true,
+      "fold_prob_bp": 4000,
+      "call_prob_bp": 3000,
+      "raise_prob_bp": 3000,
+      "raise_rank": 0
+    },
+    {
+      "rung_id": "baseline",
+      "min_players": 3,
+      "max_players": null,
+      "streets": [
+        "FLOP",
+        "TURN",
+        "RIVER"
+      ],
+      "facing_bet": false,
+      "bet_prob_bp": 7000,
+      "cbet_prob_bp": 8000,
+      "bet_rank": 0
+    },
+    {
+      "rung_id": "baseline",
+      "min_players": 3,
+      "max_players": null,
+      "streets": [
+        "PREFLOP"
+      ],
+      "facing_bet": true,
+      "fold_prob_bp": 4000,
+      "call_prob_bp": 2500,
+      "raise_prob_bp": 3500,
+      "raise_rank": 0
+    },
+    {
+      "rung_id": "baseline",
+      "min_players": 3,
+      "max_players": null,
+      "streets": [
+        "PREFLOP"
+      ],
+      "facing_bet": false,
+      "bet_prob_bp": 6000,
+      "cbet_prob_bp": 6000,
+      "bet_rank": 0
+    }
+  ]
+}

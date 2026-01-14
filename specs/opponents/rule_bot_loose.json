@@ -1,0 +1,9 @@
+{
+  "opponent_schema_id": "opponent_spec_v1",
+  "opponent_label": "rule_bot_loose",
+  "opponent_kind": "rule_based",
+  "params": {
+    "style": "loose",
+    "aggression": 0.7
+  }
+}

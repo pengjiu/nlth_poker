@@ -1,0 +1,10 @@
+{
+  "opponent_schema_id": "opponent_spec_v1",
+  "opponent_label": "system_bot_tight_v6_frozen",
+  "opponent_kind": "system_policy",
+  "params": {
+    "policy_ref": "path:specs/policies/system_bot_policy_v6_tight.json",
+    "opponent_profile_id": "6c4f22ea36c82c4535e663e53f67da3533a402d356c880cbb99743611d01e1d5",
+    "style": "tight"
+  }
+}

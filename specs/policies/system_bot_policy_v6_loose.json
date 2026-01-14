@@ -1,0 +1,61 @@
+{
+  "policy_deps": [
+    {
+      "artifact_ref": "artifact://b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932",
+      "digest": {
+        "alg": "sha256",
+        "hex": "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/settings.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "34105cd7772bae6fbfd131adb0836951944829da122ee341b7d4f541193b4774"
+      }
+    },
+    {
+      "artifact_ref": "artifact://013a5b1a4f2e1d7422327cf18de589751f4e2d642003bc207a8891bfee3937d4",
+      "digest": {
+        "alg": "sha256",
+        "hex": "013a5b1a4f2e1d7422327cf18de589751f4e2d642003bc207a8891bfee3937d4"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/preflop_ranges_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "4272ee067c0b5a0162d9b1f45bb66696fc57f911987ca6b24cfd03167d7bc610"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/preflop_freq_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "4a15f19be525bbbf68d1ad84ceafd13c6c05e96c7172dd1cc0ff8d4d7c1bd645"
+      }
+    },
+    {
+      "artifact_ref": "path:mw_strategy/mw_strategy_table_rake_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "38533cc2333b630ce99271af2e88bc21f0db5858a1e6bab36d4518648886c025"
+      }
+    },
+    {
+      "artifact_ref": "path:policy_params/system_bot_params_v5_loose.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "505e9a1b3299bbcd286d377ca9d6068ae1195942012f695eeb8fcaa7207a7647"
+      }
+    }
+  ],
+  "policy_kind": "baseline",
+  "policy_params_digest": {
+    "alg": "sha256",
+    "hex": "698b8923e04d089fc6cd8b3bed35ee879ec57bc3d41783d1a1260ae518cfe6dc"
+  },
+  "stochastic": false,
+  "policy_label": "system_bot_policy_v6_loose",
+  "policy_id": "227084924e83aca98444ccd0725508623f73fb9d7e04b78bf46f758142ec633a"
+}

@@ -1,0 +1,14 @@
+{
+  "opponent_suite_id": "8c9510a421c38e7e82a1d5a63cfc0922d7d2ee95180ff5f252b5020237d8caa2",
+  "opponent_suite_label": "rule_suite_7max_v2",
+  "opponent_suite_schema_id": "opponent_suite_spec_v1",
+  "opponents": [
+    { "opponent_ref": "path:specs/opponents/rule_bot_reg.json" },
+    { "opponent_ref": "path:specs/opponents/rule_bot_tight.json" },
+    { "opponent_ref": "path:specs/opponents/rule_bot_loose.json" },
+    { "opponent_ref": "path:specs/opponents/rule_bot_reg.json" },
+    { "opponent_ref": "path:specs/opponents/rule_bot_loose.json" },
+    { "opponent_ref": "path:specs/opponents/rule_bot_tight.json" }
+  ],
+  "population_id": "0000000000000000000000000000000000000000000000000000000000000000"
+}

@@ -1,0 +1,3 @@
+# v5v baseline report.txt paths (coinpoker 2000, seeds 2000/2001)
+tmp/scrimmage_coinpoker_2000_league_frozen_v5v_seed2000_sysleague/scrimmage_report.txt
+tmp/scrimmage_coinpoker_2000_league_frozen_v5v_seed2001_sysleague/scrimmage_report.txt

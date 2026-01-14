@@ -1,0 +1,9 @@
+{
+  "assumption": {
+    "description": "HU isolation approximation; intended to avoid aggressive MW assumptions."
+  },
+  "guard": {
+    "description": "Downgrade to baseline/failsafe when required dependencies are missing."
+  },
+  "mw_assumption_guard_schema_id": "mw_assumption_guard_spec_v1"
+}

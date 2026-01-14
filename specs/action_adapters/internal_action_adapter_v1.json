@@ -1,0 +1,5 @@
+{
+  "action_adapter_schema_id": "action_adapter_spec_v1",
+  "rounding_mode": "floor",
+  "fallback_policy": {"mode": "fail_fast"}
+}

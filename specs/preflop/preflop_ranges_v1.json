@@ -1,0 +1,13 @@
+{
+  "schema_id": "preflop_ranges_v1",
+  "source": "hrc_nodes_manifest_v1",
+  "manifest_ref": "path:preflop/nodes_manifest.json",
+  "manifest_digest": { "alg": "sha256", "hex": "31a196d3b8a1eb411f568b2bb05e9e7e24d75ffd1c9e738445edc21709db6240" },
+  "node_count": 7856,
+  "positions": {
+    "BU": { "flat_freq": 0.25, "threebet_freq": 0.18, "fourbet_freq": 0.05 },
+    "SB": { "flat_freq": 0.20, "threebet_freq": 0.22, "fourbet_freq": 0.06 },
+    "BB": { "flat_freq": 0.35, "threebet_freq": 0.20, "fourbet_freq": 0.05 },
+    "OTHERS": { "flat_freq": 0.18, "threebet_freq": 0.12, "fourbet_freq": 0.03 }
+  }
+}

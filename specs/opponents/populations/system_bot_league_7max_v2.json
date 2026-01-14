@@ -1,0 +1,32 @@
+{
+  "population_schema_id": "table_population_spec_v1",
+  "population_label": "system_bot_league_7max_v2",
+  "seat_count": 7,
+  "seat_bindings": [
+    {
+      "seat": 2,
+      "opponent_profile_id": "6c4f22ea36c82c4535e663e53f67da3533a402d356c880cbb99743611d01e1d5"
+    },
+    {
+      "seat": 3,
+      "opponent_profile_id": "5122324ebd57b6f69c8a8a228b52e0d4602962793f670e1b0fdf9d53f69ed623"
+    },
+    {
+      "seat": 4,
+      "opponent_profile_id": "5122324ebd57b6f69c8a8a228b52e0d4602962793f670e1b0fdf9d53f69ed623"
+    },
+    {
+      "seat": 5,
+      "opponent_profile_id": "5122324ebd57b6f69c8a8a228b52e0d4602962793f670e1b0fdf9d53f69ed623"
+    },
+    {
+      "seat": 6,
+      "opponent_profile_id": "6c4f22ea36c82c4535e663e53f67da3533a402d356c880cbb99743611d01e1d5"
+    },
+    {
+      "seat": 7,
+      "opponent_profile_id": "efd3b13cd1c95b2da681844f6bd53a1a3723a44c2dd333eacda9ca2f609ffec1"
+    }
+  ],
+  "population_id": "9ba302f1fc96606dc5dac440a71fd545a8990212ae6ab1b826c4fc0a76445c3c"
+}

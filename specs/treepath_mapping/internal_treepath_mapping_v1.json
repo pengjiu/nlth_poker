@@ -1,0 +1,29 @@
+{
+  "treepath_mapping_schema_id": "treepath_mapping_spec_v1",
+  "preflop": {
+    "open_frac_by_pos": {
+      "BU": "2.5bb",
+      "SB": "3.0bb",
+      "BB": "2.5bb",
+      "OTHERS": "2.5bb"
+    },
+    "threebet_mult_by_pos": {
+      "IP": "3.3x",
+      "OOP": "4.2x",
+      "BB_VS_SB": "3.5x",
+      "BB_VS_OTHER": "3.7x",
+      "SB_VS_BB": "4.0x",
+      "SB_VS_OTHER": "4.0x"
+    },
+    "fourbet_mult_by_pos": {
+      "IP": "2.3x",
+      "OOP": "2.6x"
+    }
+  },
+  "postflop": {
+    "pot_fracs": ["0.25", "0.4", "0.6", "0.9"],
+    "rounding_mode": "floor"
+  },
+  "tie_break_rule": "nearest_then_lower",
+  "fallback_policy": "snap_nearest"
+}

@@ -1,0 +1,23 @@
+{
+  "policy_params_schema_id": "system_policy_params_v6",
+  "mw_strategy_table_digest": {
+    "alg": "sha256",
+    "hex": "38533cc2333b630ce99271af2e88bc21f0db5858a1e6bab36d4518648886c025"
+  },
+  "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
+  "multiway_version": "v7",
+  "system_bot_params_digest": {
+    "alg": "sha256",
+    "hex": "1b9c3cce23737c8239d705945ef2b07167a30d5dd945614f22401ba72180be2d"
+  },
+  "safe_exploit_max_bp": 500,
+  "rake_delta_weight_bp": 3400,
+  "mw_risk_weight_bp": 35,
+  "oop_risk_weight_bp": 50,
+  "oop_realization_weight_bp": 150,
+  "oop_spr_threshold_bp": 350,
+  "preflop_defend_tighten_bp": 1300,
+  "mw_keypot_trigger_bb": 40,
+  "keypot_streets": ["TURN", "RIVER"],
+  "notes": "oop_realization_penalty_v1 + dynamic_sizing_v2 (loose)"
+}

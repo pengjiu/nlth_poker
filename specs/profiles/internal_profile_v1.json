@@ -1,0 +1,1 @@
+{"concurrency":{"workers":4},"engine_budget":{"montecarlo_rollouts_per_decision":2000},"profile_label":"internal_profile_v1","profile_schema_id":"profile_spec_v1","purpose":"throughput"}

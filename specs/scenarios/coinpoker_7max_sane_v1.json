@@ -1,0 +1,32 @@
+{
+  "abstraction_hash": "c09b877757c89190ff5183e868871dad6526f2cde102ac4063905d06a806d21c",
+  "label": "coinpoker_7max_sane_v1",
+  "mw_ladder_id": "04710702a277915bb77a70a24398153cc5675ef5c2f231c06fa7dbea3506f322",
+  "opponent_suite_id": "b5b4f11b7f38ef69eb23dc8f3864f7af9da4c6568b71944170e72633a42123a4",
+  "policy_id": "66a502a425bc037de03ef4b6c4d0267fbe40346a33254778cec0b96fd35881db",
+  "population_id": null,
+  "postflop_ref": {
+    "artifact_ref": "artifact://b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932",
+    "digest": {
+      "alg": "sha256",
+      "hex": "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932"
+    }
+  },
+  "preflop_ref": {
+    "artifact_ref": "path:preflop/settings.json",
+    "digest": {
+      "alg": "sha256",
+      "hex": "34105cd7772bae6fbfd131adb0836951944829da122ee341b7d4f541193b4774"
+    }
+  },
+  "ruleset_id": "d504009d89ff994486afa988d7d7a8a6e3def2f4933df2b9defc2c1f4e9a0768",
+  "scenario_family_key": "d02d1353991baf5d14bdfc373a2cd8b1037dee271e7908d5800372aa73addeef",
+  "scenario_id": "d151cba632df1162c0e7d0893f6c54352ae090ac1e1b7e626f56f9aaab37396c",
+  "scenario_schema_id": "scenario_spec_v1",
+  "schema_hash": "43faa234b264b41ffcfafb2462638b93aac60e4f4570a893e2f7bb229ac4a6de",
+  "triad": {
+    "action_bins_id": "77ea103da87e778da46afbfe35e05adbce5ace3e122afd7f130cc5670b07e0f7",
+    "obs_schema_id": "c5a709e2f24573aecbf740fdd51f5106ba396540b8060a335361d24cb76427ac",
+    "rake_id": "595feb6c0c9e3d4647f039419df94099c7311452b4984bf6c989f25d3be0edfa"
+  }
+}

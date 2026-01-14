@@ -1,0 +1,93 @@
+{
+  "checked_items_covered": [
+    "allin_reopen",
+    "button_rotation",
+    "forced_bets",
+    "ledger_conservation",
+    "min_raise",
+    "no_flop_no_drop",
+    "rake"
+  ],
+  "fixtures": [
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "972ad043357241a54874deb279a7fdce9fafcc03435feb26467debdaf7181416"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_button_rotation_3hands.ndjson",
+      "options_hash": "3fd34ec73f0890dad4c0fac64749b1d4d9c825abc7b75142a96c2979f92fab0f",
+      "provenance_ref": "artifact://7e35c6b0265e2f8db15b7b0585aff53ccd40e63fc1f33c8657bf800b9517ec25",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    },
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "400c1cc99f368e08c886f9215b032f905ea0446d2ce1b2de36b1574b1d233307"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_preflop_fold.ndjson",
+      "options_hash": "3fd34ec73f0890dad4c0fac64749b1d4d9c825abc7b75142a96c2979f92fab0f",
+      "provenance_ref": "artifact://371c7cab205c09e7b6786f03db6059d3e020e3a6117600818f0b25aeaf0d6761",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    },
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "64187f054eb3512771b50cf0411995cf1b80d21b83c7bec2a21aa23540b7d79a"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_allin_runout_rake_rounding.ndjson",
+      "options_hash": "3fd34ec73f0890dad4c0fac64749b1d4d9c825abc7b75142a96c2979f92fab0f",
+      "provenance_ref": "artifact://5ffee9dc183f8683ea27c9343513a10c9b4069affc796ca318f534a0e8b71d5d",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    },
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "865e35bb0533a2296d1a16ffd73d6da0abfb4440158ed65ee5a6dffbd71a1115"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_7max_sidepot_allin_runout.ndjson",
+      "options_hash": "6a4f7e7138502076c919ba67451dccf06b1603b5e2b0d8f97f4c677e01ed974f",
+      "provenance_ref": "artifact://1f28b439737d1e7052bce357ac46895082e5beda5a0feb9822d582121ccf4e5c",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    },
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "07d43a90e3c02fdf10ad275169db978bdb8e179e1fcc589503cbb828f4b9d9b4"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_7max_short_allin_reopen_false.ndjson",
+      "options_hash": "6a4f7e7138502076c919ba67451dccf06b1603b5e2b0d8f97f4c677e01ed974f",
+      "provenance_ref": "artifact://8093218e01a5615ad9936c566f3ac7d85bd7f1fb1a4aee6b46a0d44ce16c1201",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    },
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "907005518f52ba6125bd61de89a02cbe2de9c2a34d759981077efb575d84f7e2"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_7max_postflop_library.ndjson",
+      "options_hash": "dc1e75c522a65914490abce1edcea1b626ca8a7b7e9649bed68505307fde4acc",
+      "provenance_ref": "artifact://6bcfc79ef38aa4366a38ffcb363d70416330c55d09affd78f7210144163ab71b",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    },
+    {
+      "event_stream_digest": {
+        "alg": "sha256",
+        "hex": "107bfcb559d74ca1d05a11fa21e88b24c3dac78f22f2eb4f178197fd48a23b77"
+      },
+      "event_stream_ref": "path:fixtures/internal/eventstreams/internal_v1_hu_baseline.ndjson",
+      "options_hash": "8a519dd97c9ed576f97c117dbc3e92195e5ee3c55b2e0495a8b9dd9817022f48",
+      "provenance_ref": "artifact://490d3f1c6ee8f12936b193f41b3fb60fa61e453e37d489bb4c6719f507e7d8ac",
+      "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00"
+    }
+  ],
+  "fixtures_pack_schema_id": "golden_fixtures_pack_v1",
+  "platform": "internal",
+  "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00",
+  "ruleset_label": "internal_ruleset_v1",
+  "scenarios": [
+    {
+      "scenario_id": "544f6b797807b1dc1e404d2d48f8bc188baf41d183c2fd7a18946cd66249ba24",
+      "scenario_family_key": "a717de8c74c283e9c38912b486db26c79b010369c7db5ce8d0ad2e7168dc59cb"
+    }
+  ]
+}

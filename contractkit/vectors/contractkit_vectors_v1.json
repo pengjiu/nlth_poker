@@ -1,0 +1,77 @@
+{
+  "vector_schema_id": "contractkit_vectors_v1",
+  "spec_ref": {
+    "path": "contractkit/spec/contractkit_spec_v1.json"
+  },
+  "cases": [
+    {
+      "name": "canonical_object_key_order",
+      "op": "canonical_sha256",
+      "input": { "b": 1, "a": 2 },
+      "expected": {
+        "canonical_json": "{\"a\":2,\"b\":1}",
+        "sha256_hex": "d3626ac30a87e6f7a6428233b3c68299976865fa5508e4267c5415c76af7a772"
+      }
+    },
+    {
+      "name": "canonical_nested_key_order_and_arrays_stable",
+      "op": "canonical_sha256",
+      "input": { "b": [3, 2, 1], "a": { "d": 1, "c": 2 } },
+      "expected": {
+        "canonical_json": "{\"a\":{\"c\":2,\"d\":1},\"b\":[3,2,1]}",
+        "sha256_hex": "3d4bb25b5a0a8f45141eb55d04317ac8d14c64e77ca1d18e9a3a472d5e85eb9c"
+      }
+    },
+    {
+      "name": "canonical_seatmap_keys_sorted_numerically",
+      "op": "canonical_sha256",
+      "input": {
+        "kind": "blinds",
+        "by_seat_amount_chips": { "2": 10, "10": 5, "1": 7 }
+      },
+      "expected": {
+        "canonical_json": "{\"by_seat_amount_chips\":{\"1\":7,\"2\":10,\"10\":5},\"kind\":\"blinds\"}",
+        "sha256_hex": "3438bee382c8fc4d5c03db3bc0500a34172880b0f1f9a373e48d9381973b8913"
+      }
+    },
+    {
+      "name": "canonical_string_newlines_are_escaped",
+      "op": "canonical_sha256",
+      "input": { "s": "line1\nline2" },
+      "expected": {
+        "canonical_json": "{\"s\":\"line1\\nline2\"}",
+        "sha256_hex": "d49c2256ea04fe3afc20801818325444b17d94a2239e64aae0ce5067da716fe3"
+      }
+    },
+    {
+      "name": "reject_float_in_hash_input",
+      "op": "canonical_sha256",
+      "input": { "x": 1.0 },
+      "expect_error": { "code": "FLOAT_NOT_ALLOWED" }
+    },
+    {
+      "name": "validate_digest_object_ok",
+      "op": "validate_digest_object",
+      "input": { "alg": "sha256", "hex": "0000000000000000000000000000000000000000000000000000000000000000" }
+    },
+    {
+      "name": "validate_digest_object_rejects_wrong_alg",
+      "op": "validate_digest_object",
+      "input": { "alg": "md5", "hex": "0000000000000000000000000000000000000000000000000000000000000000" },
+      "expect_error": { "code": "DIGEST_ALG_NOT_ALLOWED" }
+    },
+    {
+      "name": "validate_digest_object_rejects_uppercase_hex",
+      "op": "validate_digest_object",
+      "input": { "alg": "sha256", "hex": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+      "expect_error": { "code": "DIGEST_HEX_NOT_LOWER" }
+    },
+    {
+      "name": "validate_digest_object_rejects_wrong_length",
+      "op": "validate_digest_object",
+      "input": { "alg": "sha256", "hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+      "expect_error": { "code": "DIGEST_HEX_WRONG_LEN" }
+    }
+  ]
+}
+

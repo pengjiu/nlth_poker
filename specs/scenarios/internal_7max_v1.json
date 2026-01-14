@@ -1,0 +1,19 @@
+{
+  "abstraction_hash": "f9b2df97e4687fede1a05bb857c0c3b0b9eee970abd78c8471a2b9328faefab4",
+  "label": "internal_7max_v1",
+  "mw_ladder_id": "04710702a277915bb77a70a24398153cc5675ef5c2f231c06fa7dbea3506f322",
+  "opponent_suite_id": null,
+  "population_id": null,
+  "postflop_ref": null,
+  "preflop_ref": null,
+  "ruleset_id": "50ffdced3fdc825033c244110991baf6b822516e32afd684ae8aec8784000c00",
+  "scenario_family_key": "27fa8a6e462a3c440652bc0b2a40584bf96640e6c9a4de2808d74fd27dfcc2f2",
+  "scenario_id": "6d60d3f8c6b6f6ee43a0e6683f89cee20158fdc2c9369a70ae072cee7a62de2d",
+  "scenario_schema_id": "scenario_spec_v1",
+  "schema_hash": "43faa234b264b41ffcfafb2462638b93aac60e4f4570a893e2f7bb229ac4a6de",
+  "triad": {
+    "action_bins_id": "5e37a0e34e5d038a5bcdd0f7fb244e98cc842c6cf442b141e05cf42da32f6703",
+    "obs_schema_id": "c5a709e2f24573aecbf740fdd51f5106ba396540b8060a335361d24cb76427ac",
+    "rake_id": "91ae99551060ce3416cd69729a61183a4872386afe7ae4de55ad35110aa7b086"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "abstraction_hash": "7da5cdd8012cae37510c4d8180bb3a69d46628bfe6ba03e0440b386694b5f439",
+  "label": "coinpoker_7max_mw_v3_actionspace_league_v1",
+  "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
+  "opponent_suite_id": "4566fe4e98fca13d7c33c2b0828c3ccaa66ec4af72f941cabec901afc597800a",
+  "policy_id": "5176c27c0b0279785846bee6f51fff3edbf6d152a90ff9a0441d8d599f66d3e5",
+  "population_id": "4afc69e27c47499e8a40d0be8e36437d46eea9f50846952cb8cc0a5efe2839a2",
+  "postflop_ref": {
+    "artifact_ref": "artifact://b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932",
+    "digest": {
+      "alg": "sha256",
+      "hex": "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932"
+    }
+  },
+  "preflop_ref": {
+    "artifact_ref": "path:preflop/settings.json",
+    "digest": {
+      "alg": "sha256",
+      "hex": "34105cd7772bae6fbfd131adb0836951944829da122ee341b7d4f541193b4774"
+    }
+  },
+  "ruleset_id": "d504009d89ff994486afa988d7d7a8a6e3def2f4933df2b9defc2c1f4e9a0768",
+  "scenario_family_key": "9012f483361b167680abdf3faee252625bf94d853d9a87bcea912bde65d570c3",
+  "scenario_id": "eeaaa410b63edabeeec9f93321b7142e404d15a3cbb6313f6fbb416ab0073afe",
+  "scenario_schema_id": "scenario_spec_v1",
+  "schema_hash": "43faa234b264b41ffcfafb2462638b93aac60e4f4570a893e2f7bb229ac4a6de",
+  "triad": {
+    "action_bins_id": "0cf03edecaa9b2e9ea723f1292b54211ae6312783d08ce18ba4c059a8323d3d2",
+    "obs_schema_id": "c5a709e2f24573aecbf740fdd51f5106ba396540b8060a335361d24cb76427ac",
+    "rake_id": "595feb6c0c9e3d4647f039419df94099c7311452b4984bf6c989f25d3be0edfa"
+  },
+  "scenario_family_id": "9012f483361b167680abdf3faee252625bf94d853d9a87bcea912bde65d570c3"
+}
