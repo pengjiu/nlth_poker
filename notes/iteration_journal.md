@@ -151,3 +151,19 @@
   - bb/100=51.33 / 6.50 / 26.11 / 15.01 / 12.91（均值≈22.37，std≈17.66，SE≈7.90）。
   - BB Flat Facing=Y（均值，样本小波动大）：FLOP≈+114.64、TURN≈-434.35、RIVER≈-253.33 bb/100。
   - 结论：整体均值首次明显高于 v5v（18.86），但 TURN/RIVER 面对下注仍偏弱且样本稀疏；下一步应在维持 preflop 结构的同时，继续降低 OOP 多街 facing Y 的薄跟注并稳定河牌实现率。
+- 2026-01-15 OOP facing 风险成本细分 + solver EV 差绑定（call_risk_premium 加入 price+SPR 平滑分桶；call/raise mix 绑定 solver_raise_ev−solver_call_ev；revert55，5×2000，seeds=2000–2004）：
+  - bb/100=51.33 / 7.55 / 24.71 / 12.26 / 11.29（均值≈21.43，std≈17.92，SE≈8.01）。
+  - BB Flat Facing=Y（合并均值）：TURN≈-434.35（合并率≈-462.56，95%CI≈±1438.45，hands=27），RIVER≈-253.33（合并率≈-492.46，95%CI≈±1231.23，hands=37）。
+  - 结论：总体均值仍高于 v5v，但 TURN/RIVER facing Y 负桶未显著收敛（样本仍少、方差极大）；下一步需继续提高 turn/river 对高 price、深 SPR 的 fold 权重，或加大 call EV 置信修正以压缩薄跟注。
+- 2026-01-15 TURN/RIVER call_pref 额外收缩（call_edge_ratio 加 spr/solver gap 调整；call_net_dominated margin 加 price+spr；revert57，5×2000，seeds=2000–2004）：
+  - bb/100=38.52 / 8.86 / 24.14 / 12.27 / 12.88（均值≈19.33，std≈12.17，SE≈5.44）。
+  - BB Flat Facing=Y（合并均值）：TURN≈-467.32（合并率≈-549.46，95%CI≈±1471.93，hands=28），RIVER≈-344.59（合并率≈-606.00，95%CI≈±1293.52，hands=36）。
+  - 结论：均值较 revert55 下滑，且 facing Y 负桶未收敛；应回退本轮加压项，转向更稳定的“面对下注时 raise 权重上限与 call EV 置信度联动”或“preflop BB/SB flat 结构进一步重分配”。
+- 2026-01-15 TURN/RIVER defend_target 乘 solver_gap 缩放（defend_target*=0.70+0.30*sigmoid(gap)；revert59，5×2000，seeds=2000–2004）：
+  - bb/100=34.73 / 6.78 / 21.64 / 11.89 / 13.96（均值≈17.80，std≈10.87，SE≈4.86）。
+  - BB Flat Facing=Y（合并均值）：TURN≈-325.56（合并率≈-529.93，95%CI≈±1671.83，hands=27），RIVER≈-336.35（合并率≈-599.14，95%CI≈±1304.68，hands=36）。
+  - 结论：整体回报跌破 v5v（18.86），需回退该缩放；下一步应围绕 raise_cap 与 call EV 置信约束做更小步的局部调优。
+- 2026-01-15 预翻频率再次下调（BB call 0.45→0.40 / 3bet 0.30→0.32；SB call 0.25→0.22 / 3bet 0.20→0.22；revert60，5×2000，seeds=2000–2004）：
+  - bb/100=50.92 / 7.55 / 24.71 / 8.57 / 11.29（均值≈20.61，std≈18.29，SE≈8.18）。
+  - BB Flat Facing=Y：TURN≈-434.35、RIVER≈-253.33（与 revert55 基本一致，合并率≈-462.56/-492.46）。
+  - 结论：均值低于 revert55（21.43），且核心 facing Y 未改善；已回退到 revert55 的 preflop 先验。

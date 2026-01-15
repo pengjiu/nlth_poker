@@ -1805,6 +1805,16 @@ def build_system_policy(
                 call_ev_ref_call = call_ev_ref
                 call_risk_premium: float | None = None
                 call_oop_cost_cache: float | None = None
+                solver_ev_gap: float | None = None
+                if (
+                    facing_bet
+                    and use_solver_ev
+                    and solver_call_ev is not None
+                    and solver_raise_ev is not None
+                    and street in ("FLOP", "TURN", "RIVER")
+                ):
+                    solver_ev_gap = (float(solver_raise_ev) - float(solver_call_ev)) / max(1.0, float(pot_unit))
+                    solver_ev_gap = max(-1.0, min(1.0, solver_ev_gap))
                 if (
                     facing_bet
                     and call_ev_ref is not None
@@ -1812,22 +1822,59 @@ def build_system_policy(
                     and exp_rake_call is not None
                 ):
                     if street in ("FLOP", "TURN", "RIVER") and pos_key in ("SB", "BB"):
+                        def _bucket_factor(value: float, points: list[tuple[float, float]]) -> float:
+                            if not points:
+                                return 1.0
+                            pts = sorted(points, key=lambda x: x[0])
+                            if value <= pts[0][0]:
+                                return float(pts[0][1])
+                            if value >= pts[-1][0]:
+                                return float(pts[-1][1])
+                            for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+                                if value <= x1:
+                                    t = (value - x0) / max(1e-6, x1 - x0)
+                                    return float(y0 + (y1 - y0) * t)
+                            return float(pts[-1][1])
+
                         price = float(to_call) / max(1.0, float(pot_unit))
                         mw = max(0, players_alive - 2)
                         spr_local = None
                         if stack_chips is not None and pot_chips > 0:
                             spr_local = float(stack_chips) / float(pot_chips)
+                        if street == "FLOP":
+                            base_prem = 0.007
+                        elif street == "TURN":
+                            base_prem = 0.012
+                        else:
+                            base_prem = 0.016
+                        price_factor = _bucket_factor(
+                            price,
+                            [
+                                (0.0, 0.70),
+                                (0.12, 0.85),
+                                (0.25, 1.00),
+                                (0.40, 1.15),
+                                (0.60, 1.35),
+                                (0.80, 1.55),
+                                (1.00, 1.75),
+                            ],
+                        )
                         spr_factor = 1.0
                         if spr_local is not None:
-                            spr_factor = 1.0 + 0.08 * max(0.0, min(8.0, spr_local - 4.0))
-                        if street == "FLOP":
-                            base_prem = 0.008
-                            price_factor = 0.10
-                        else:
-                            base_prem = 0.015
-                            price_factor = 0.18
-                        prem = float(pot_unit) * (base_prem + price_factor * price + 0.05 * mw)
-                        prem *= (0.6 + 0.4 * unc) * spr_factor
+                            spr_factor = _bucket_factor(
+                                max(1.0, spr_local),
+                                [
+                                    (1.0, 0.85),
+                                    (2.0, 0.95),
+                                    (4.0, 1.05),
+                                    (6.0, 1.20),
+                                    (8.0, 1.35),
+                                    (12.0, 1.50),
+                                ],
+                            )
+                        mw_factor = 1.0 + 0.30 * mw
+                        prem = float(pot_unit) * base_prem * price_factor * spr_factor * mw_factor
+                        prem *= (0.6 + 0.4 * unc)
                         call_risk_premium = prem
                         call_ev_ref_call = float(call_ev_ref) - float(prem)
                     delta_rake_call = float(exp_rake_call) - float(base_rake)
@@ -2019,6 +2066,14 @@ def build_system_policy(
                             base *= max(0.35, min(1.7, 1.0 + 2.0 * edge_ratio))
                         elif kind == "CALL":
                             base *= max(0.6, min(1.6, 1.0 - 1.4 * edge_ratio))
+                        if solver_ev_gap is not None:
+                            gap_sig = 1.0 / (1.0 + math.exp(-5.0 * float(solver_ev_gap)))
+                            if kind in ("RAISE", "BET", "ALLIN"):
+                                bias = 0.45 + 0.95 * gap_sig if street in ("TURN", "RIVER") else 0.55 + 0.90 * gap_sig
+                                base *= bias
+                            elif kind == "CALL":
+                                bias = 0.45 + 0.95 * (1.0 - gap_sig) if street in ("TURN", "RIVER") else 0.55 + 0.90 * (1.0 - gap_sig)
+                                base *= bias
                         if facing_bet and defend_target is not None:
                             if kind == "CALL":
                                 base *= 1.10
