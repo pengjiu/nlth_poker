@@ -80,6 +80,8 @@ def _ensure_pyo3_module(build_id: str, src_root: pathlib.Path) -> Any:
         str(src_root / "Cargo.toml"),
         "--target-dir",
         str(build_dir / "target"),
+        "--interpreter",
+        sys.executable,
     ]
     try:
         proc = subprocess.run(cmd_build, cwd=str(src_root), check=False, capture_output=True, text=True, env=env)
@@ -94,6 +96,8 @@ def _ensure_pyo3_module(build_id: str, src_root: pathlib.Path) -> Any:
             str(src_root / "Cargo.toml"),
             "--target-dir",
             str(build_dir / "target"),
+            "--interpreter",
+            sys.executable,
         ]
         proc = subprocess.run(cmd_build, cwd=str(src_root), check=False, capture_output=True, text=True, env=env)
     if proc.returncode != 0:

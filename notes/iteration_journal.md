@@ -243,6 +243,23 @@
   - bb/100=42.23 / 14.97 / 38.78 / 6.37 / 26.97（均值≈25.86，std≈13.67，SE≈6.11）。
   - BB Flat Facing=Y 合并：FLOP≈+328.19（hands=27），TURN≈-404.34（hands=38），RIVER≈+181.05（hands=61）。
   - 结论：结果完全一致，说明该分支在多数决策中未生效（target 未走该权重路径）；已回退。
+- 2026-01-16 尝试在多路场景引入 postflop_solver 提示（revert98，5×2000，seeds=2000–2004）：
+  - bb/100=35.91 / 9.44 / -14.13 / -2.21 / 5.82（均值≈6.97，std≈16.58，SE≈7.41）。
+  - solver_ev_trace_by_street 总计：PREFLOP=1036、FLOP=117、TURN=75、RIVER=50（solver 已生效）。
+  - BB Flat Facing=Y 合并：FLOP≈-116.38（hands=24），TURN≈-1538.21（hands=19），RIVER≈-857.43（hands=40）。
+  - 结论：多路使用 solver 提示导致策略显著退化（负桶恶化、均值大幅下降），说明当前 solver 过于粗糙/假设不匹配多路；已回退该改动，仅保留 HU/关键底池使用 solver。
+- 2026-01-16 TURN/RIVER OOP call_dominated 边际提升（price/size penalty；revert99，5×2000，seeds=2000–2004）：
+  - bb/100=60.19 / 9.36 / -0.82 / -9.36 / 9.10（均值≈13.69，std≈24.26，SE≈10.85）。
+  - BB Flat Facing=Y 合并：FLOP≈+266.04（hands=24），TURN≈-646.86（hands=28），RIVER≈-832.79（hands=47）。
+  - 结论：整体均值显著下滑且方差扩大，TURN/RIVER 负桶恶化；已回退该改动。
+- 2026-01-16 raise_cap_marginal 的 to_call_bb 惩罚系数上调（1.8→2.4；revert100，5×2000，seeds=2000–2004）：
+  - bb/100=60.19 / 9.36 / -0.82 / -9.36 / 9.10（均值≈13.69，std≈24.26，SE≈10.85）。
+  - BB Flat Facing=Y 合并：FLOP≈+266.04（hands=24），TURN≈-646.86（hands=28），RIVER≈-832.79（hands=47）。
+  - 结论：结果与 revert99 同幅度下滑，说明提高 to_call_bb 惩罚会显著伤害整体 EV；已回退该改动。
+- 2026-01-16 预翻更激进先验（BB call 0.25 / 3bet 0.45；SB call 0.20 / 3bet 0.25；revert101，5×2000，seeds=2000–2004）：
+  - bb/100=61.77 / 9.56 / -0.82 / -9.36 / 9.10（均值≈14.05，std≈24.87，SE≈11.12）。
+  - BB Flat Facing=Y 合并：FLOP≈+266.04（hands=24），TURN≈-646.86（hands=28），RIVER≈-832.79（hands=47）。
+  - 结论：均值显著低于 revert94，且方差较大；已回退该先验。
 - 2026-01-15 TURN/RIVER OOP facing 软门槛作用到 defend_target（call_ev_gate×solver_gap 缩放 target_def；revert70，5×2000，seeds=2000–2004）：
   - bb/100=24.97 / 9.75 / 27.65 / 5.38 / 8.65（均值≈15.28，std≈9.16，SE≈4.10），显著低于 v5v 与 revert55/54。
   - BB Flat Facing=Y 合并：FLOP pooled≈+439.03（hands=30），TURN pooled≈+155.43（hands=37），RIVER pooled≈+431.71（hands=51；CI 宽）。
