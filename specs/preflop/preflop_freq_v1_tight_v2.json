@@ -1,0 +1,13 @@
+{
+  "schema_id": "preflop_freq_v1",
+  "source": "hrc_nodes_manifest_v1",
+  "manifest_ref": "path:preflop/nodes_manifest.json",
+  "manifest_digest": { "alg": "sha256", "hex": "31a196d3b8a1eb411f568b2bb05e9e7e24d75ffd1c9e738445edc21709db6240" },
+  "node_count": 7856,
+  "positions": {
+    "BU": { "open_pct": 0.55, "call_pct": 0.25, "threebet_pct": 0.15, "fourbet_pct": 0.05 },
+    "SB": { "open_pct": 0.45, "call_pct": 0.22, "threebet_pct": 0.23, "fourbet_pct": 0.05 },
+    "BB": { "open_pct": 0.10, "call_pct": 0.30, "threebet_pct": 0.40, "fourbet_pct": 0.05 },
+    "OTHERS": { "open_pct": 0.30, "call_pct": 0.50, "threebet_pct": 0.15, "fourbet_pct": 0.05 }
+  }
+}

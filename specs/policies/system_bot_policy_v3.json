@@ -29,10 +29,10 @@
       }
     },
     {
-      "artifact_ref": "path:preflop/preflop_freq_v1.json",
+      "artifact_ref": "path:preflop/preflop_freq_v1_tight.json",
       "digest": {
         "alg": "sha256",
-        "hex": "4a15f19be525bbbf68d1ad84ceafd13c6c05e96c7172dd1cc0ff8d4d7c1bd645"
+        "hex": "5a6088e5db32ddb226909b6c0ba63ef35b981f3192d5b012d1e5551517f751b5"
       }
     },
     {
@@ -50,5 +50,5 @@
   },
   "stochastic": false,
   "policy_label": "system_bot_policy_v3",
-  "policy_id": "d1b2730198dd525f05b87bca2e9199895995e0caeb2d568b20b3d3e5bc8b74cb"
+  "policy_id": "2de296bacd213dcf632501a3efb12455f5bcb85a0e1cef2819be00d8efac21e5"
 }

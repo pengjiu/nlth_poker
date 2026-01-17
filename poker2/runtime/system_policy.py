@@ -1805,16 +1805,6 @@ def build_system_policy(
                 call_ev_ref_call = call_ev_ref
                 call_risk_premium: float | None = None
                 call_oop_cost_cache: float | None = None
-                solver_ev_gap: float | None = None
-                if (
-                    facing_bet
-                    and use_solver_ev
-                    and solver_call_ev is not None
-                    and solver_raise_ev is not None
-                    and street in ("FLOP", "TURN", "RIVER")
-                ):
-                    solver_ev_gap = (float(solver_raise_ev) - float(solver_call_ev)) / max(1.0, float(pot_unit))
-                    solver_ev_gap = max(-1.0, min(1.0, solver_ev_gap))
                 if (
                     facing_bet
                     and call_ev_ref is not None
@@ -1822,59 +1812,25 @@ def build_system_policy(
                     and exp_rake_call is not None
                 ):
                     if street in ("FLOP", "TURN", "RIVER") and pos_key in ("SB", "BB"):
-                        def _bucket_factor(value: float, points: list[tuple[float, float]]) -> float:
-                            if not points:
-                                return 1.0
-                            pts = sorted(points, key=lambda x: x[0])
-                            if value <= pts[0][0]:
-                                return float(pts[0][1])
-                            if value >= pts[-1][0]:
-                                return float(pts[-1][1])
-                            for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
-                                if value <= x1:
-                                    t = (value - x0) / max(1e-6, x1 - x0)
-                                    return float(y0 + (y1 - y0) * t)
-                            return float(pts[-1][1])
-
                         price = float(to_call) / max(1.0, float(pot_unit))
                         mw = max(0, players_alive - 2)
                         spr_local = None
                         if stack_chips is not None and pot_chips > 0:
                             spr_local = float(stack_chips) / float(pot_chips)
-                        if street == "FLOP":
-                            base_prem = 0.007
-                        elif street == "TURN":
-                            base_prem = 0.012
-                        else:
-                            base_prem = 0.016
-                        price_factor = _bucket_factor(
-                            price,
-                            [
-                                (0.0, 0.70),
-                                (0.12, 0.85),
-                                (0.25, 1.00),
-                                (0.40, 1.15),
-                                (0.60, 1.35),
-                                (0.80, 1.55),
-                                (1.00, 1.75),
-                            ],
-                        )
                         spr_factor = 1.0
                         if spr_local is not None:
-                            spr_factor = _bucket_factor(
-                                max(1.0, spr_local),
-                                [
-                                    (1.0, 0.85),
-                                    (2.0, 0.95),
-                                    (4.0, 1.05),
-                                    (6.0, 1.20),
-                                    (8.0, 1.35),
-                                    (12.0, 1.50),
-                                ],
-                            )
-                        mw_factor = 1.0 + 0.30 * mw
-                        prem = float(pot_unit) * base_prem * price_factor * spr_factor * mw_factor
-                        prem *= (0.6 + 0.4 * unc)
+                            spr_factor = 1.0 + 0.08 * max(0.0, min(8.0, spr_local - 4.0))
+                        if street == "FLOP":
+                            base_prem = 0.008
+                            price_factor = 0.10
+                            price_boost = 1.0
+                        else:
+                            base_prem = 0.015
+                            price_factor = 0.22
+                            price_boost = 1.0 + 0.35 * price
+                        prem = float(pot_unit) * (base_prem + price_factor * price + 0.05 * mw)
+                        prem *= price_boost
+                        prem *= (0.6 + 0.4 * unc) * spr_factor
                         call_risk_premium = prem
                         call_ev_ref_call = float(call_ev_ref) - float(prem)
                     delta_rake_call = float(exp_rake_call) - float(base_rake)
@@ -1890,6 +1846,17 @@ def build_system_policy(
                         edge_sig = 1.0 / (1.0 + math.exp(-3.2 * (call_edge_ratio - 0.02)))
                         edge_ceiling = 0.15 + 0.85 * edge_sig
                         target_def = min(target_def, max(0.05, edge_ceiling))
+                    if street in ("TURN", "RIVER") and pos_key in ("SB", "BB"):
+                        price = float(to_call) / max(1.0, float(pot_unit))
+                        price = max(0.0, min(1.0, price))
+                        price_scale = 0.95 - 0.35 * price
+                        price_scale = max(0.65, min(0.95, price_scale))
+                        target_def = max(0.05, target_def * price_scale)
+                    if street in ("TURN", "RIVER") and pos_key in ("SB", "BB"):
+                        price = float(to_call) / max(1.0, float(pot_unit))
+                        edge_adj = float(call_edge_ratio) - (0.02 + 0.08 * price)
+                        edge_sig = 1.0 / (1.0 + math.exp(-4.6 * edge_adj))
+                        target_def *= 0.55 + 0.45 * edge_sig
                     if street in ("TURN", "RIVER"):
                         price = float(to_call) / max(1.0, float(pot_unit))
                         edge_adj = float(call_edge_ratio) - (0.03 + 0.08 * price)
@@ -1969,7 +1936,10 @@ def build_system_policy(
                     ev_edge = float(ev_use)
                     if use_solver_ev and solver_raise_ev is not None:
                         ev_edge = float(solver_raise_ev)
-                    edge = float(ev_edge) - float(call_ev_ref) - delta_rake - oop_cost
+                    base_call_ev = float(call_ev_ref)
+                    if call_ev_ref_call is not None:
+                        base_call_ev = float(call_ev_ref_call)
+                    edge = float(ev_edge) - base_call_ev - delta_rake - oop_cost
                     risk_exposure = float(risk_unit) + max(0.0, delta_rake) + max(0.0, oop_cost)
                     if street in ("TURN", "RIVER"):
                         spr = None
@@ -2002,6 +1972,8 @@ def build_system_policy(
                     unc: float,
                     players_alive: int,
                     spr: float | None,
+                    price: float | None,
+                    to_call_bb: float | None,
                     pos_key: str,
                     street: str | None,
                     solver_conf: float,
@@ -2018,10 +1990,20 @@ def build_system_policy(
                     oop_penalty = 1.0
                     if pos_key in ("SB", "BB") and street in ("FLOP", "TURN"):
                         oop_penalty = 0.90
-                    cap *= spr_penalty * mw_penalty * oop_penalty
+                    price_penalty = 1.0
+                    if price is not None:
+                        p = max(0.0, min(1.0, float(price)))
+                        price_penalty = 0.55 + 0.45 * (1.0 / (1.0 + 1.8 * p))
+                    bb_penalty = 1.0
+                    if pos_key in ("SB", "BB") and street in ("TURN", "RIVER") and to_call_bb is not None:
+                        bb_ratio = max(0.0, float(to_call_bb))
+                        bb_sig = 1.0 / (1.0 + math.exp(1.8 * (bb_ratio - 1.0)))
+                        bb_penalty = 0.55 + 0.45 * bb_sig
+                    cap *= spr_penalty * mw_penalty * oop_penalty * price_penalty * bb_penalty
                     return max(0.01, min(0.70, cap))
 
                 raise_metrics_by_id: dict[int, tuple[float, float, float]] = {}
+                raise_net_delta_by_id: dict[int, float] = {}
                 hint_raise_act: dict[str, Any] | None = None
                 hint_raise_local_ev: float | None = None
                 if solver_hint_target is not None and solver_hint_kind == "RAISE":
@@ -2060,20 +2042,15 @@ def build_system_policy(
                         if solver_edge is not None and not use_solver_ev:
                             edge_bias += float(solver_edge)
                         if call_ev_ref is not None:
-                            edge_bias += float(ev_use) - float(call_ev_ref)
+                            ref_ev = float(call_ev_ref)
+                            if kind == "CALL" and call_ev_ref_call is not None:
+                                ref_ev = float(call_ev_ref_call)
+                            edge_bias += float(ev_use) - ref_ev
                         edge_ratio = edge_bias / max(1.0, float(pot_unit))
                         if kind in ("RAISE", "BET", "ALLIN"):
                             base *= max(0.35, min(1.7, 1.0 + 2.0 * edge_ratio))
                         elif kind == "CALL":
                             base *= max(0.6, min(1.6, 1.0 - 1.4 * edge_ratio))
-                        if solver_ev_gap is not None:
-                            gap_sig = 1.0 / (1.0 + math.exp(-5.0 * float(solver_ev_gap)))
-                            if kind in ("RAISE", "BET", "ALLIN"):
-                                bias = 0.45 + 0.95 * gap_sig if street in ("TURN", "RIVER") else 0.55 + 0.90 * gap_sig
-                                base *= bias
-                            elif kind == "CALL":
-                                bias = 0.45 + 0.95 * (1.0 - gap_sig) if street in ("TURN", "RIVER") else 0.55 + 0.90 * (1.0 - gap_sig)
-                                base *= bias
                         if facing_bet and defend_target is not None:
                             if kind == "CALL":
                                 base *= 1.10
@@ -2082,6 +2059,11 @@ def build_system_policy(
                                 if call_pref is not None:
                                     adj = float(call_pref) ** 1.8
                                     base *= 0.15 + 0.85 * adj
+                                if call_edge_ratio is not None and pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                    price = float(to_call) / max(1.0, float(pot_unit))
+                                    edge_adj = float(call_edge_ratio) - (0.02 + 0.06 * price)
+                                    edge_sig = 1.0 / (1.0 + math.exp(-4.2 * edge_adj))
+                                    base *= 0.55 + 0.45 * edge_sig
                                 if call_net_dominated and street in ("TURN", "RIVER"):
                                     base *= 0.25
                             elif kind in ("RAISE", "BET", "ALLIN"):
@@ -2089,6 +2071,13 @@ def build_system_policy(
                                     base *= 0.60
                                 elif solver_hint_kind == "RAISE":
                                     base *= 1.10
+                                if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                    price = float(to_call) / max(1.0, float(pot_unit))
+                                    price = max(0.0, min(1.5, price))
+                                    price_penalty = 1.0 / (1.0 + 2.4 * price)
+                                    gap_sig = 1.0 / (1.0 + math.exp(-3.8 * (edge_ratio - 0.02)))
+                                    conf_scale = 0.70 + 0.30 * max(0.0, min(1.0, solver_ev_conf))
+                                    base *= (0.65 + 0.35 * price_penalty) * (0.55 + 0.45 * gap_sig) * conf_scale
                     if kind in ("RAISE", "BET", "ALLIN"):
                         flags = action_flags.get(id(act))
                         signal = float(flags.get("signal", 0.0)) if flags is not None else 0.0
@@ -2174,7 +2163,25 @@ def build_system_policy(
                                 continue
                             edge = float(metrics[0])
                             edge_per_risk = float(metrics[2])
+                            if call_ev_net is not None:
+                                exp_rake_raise = _expected_rake_for_action(
+                                    action=act,
+                                    pot_chips=pot_chips,
+                                    actor_commit=actor_commit,
+                                    to_call=to_call,
+                                    players_alive=players_alive,
+                                    street=street,
+                                    defend_rate=None,
+                                )
+                                risk_unit = max(float(to_call), float(max(0, int(act.get("target_total_commit_chips", actor_commit)) - actor_commit)))
+                                oop_cost = _oop_multi_street_cost(risk_unit, equity)
+                                raise_ev_net = float(ev_use) - (float(exp_rake_raise) - float(base_rake)) - float(oop_cost)
+                                raise_net_delta_by_id[id(act)] = raise_ev_net - float(call_ev_net)
                             risk_weight = 1.0 / (1.0 + math.exp(-3.0 * edge_per_risk))
+                            if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                to_call_bb = float(to_call) / max(1.0, float(bb or 1))
+                                size_sig = 1.0 / (1.0 + math.exp(1.6 * (to_call_bb - 1.0)))
+                                risk_weight *= 0.55 + 0.45 * size_sig
                             net_ev_risk_weight_by_id[id(act)] = 0.25 + 0.75 * max(0.0, min(1.0, risk_weight))
                             base_ev = float(call_ev_ref) if call_ev_ref is not None else float(ev_use)
                             net_entries.append((act, base_ev + edge))
@@ -2260,6 +2267,8 @@ def build_system_policy(
                         elif solver_call_ev is not None or solver_raise_ev is not None:
                             ev_conf = 0.6
                         conf = (0.35 + 0.65 * ev_conf) * max(0.35, 1.0 - unc)
+                        if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                            conf = min(0.95, conf * 1.15)
                         blended = (1.0 - conf) * float(defend_target) + conf * float(defend_ev_share)
                         defend_target = min(float(defend_target), max(0.01, min(0.99, blended)))
                 elif ev_soft_weight_by_id:
@@ -2305,6 +2314,7 @@ def build_system_policy(
                     best_edge = None
                     edge_ratio_vals: list[float] = []
                     edge_per_risk_vals: list[float] = []
+                    net_delta_vals: list[float] = []
                     if hint_raise_act is not None:
                         ev_use = _solver_ev_for_action(hint_raise_act, float(hint_raise_local_ev or 0.0))
                         raise_ev_best_raw = ev_use
@@ -2318,6 +2328,9 @@ def build_system_policy(
                             best_edge_act = hint_raise_act
                             edge_ratio_vals.append(edge_ratio)
                             edge_per_risk_vals.append(float(_edge_per_risk))
+                            net_delta = raise_net_delta_by_id.get(id(hint_raise_act))
+                            if net_delta is not None:
+                                net_delta_vals.append(float(net_delta))
                     if best_edge is None:
                         for _score, _ev, act in score_rows:
                             if act not in candidates:
@@ -2336,6 +2349,9 @@ def build_system_policy(
                             edge, edge_ratio, edge_per_risk = metrics
                             edge_ratio_vals.append(edge_ratio)
                             edge_per_risk_vals.append(float(edge_per_risk))
+                            net_delta = raise_net_delta_by_id.get(id(act))
+                            if net_delta is not None:
+                                net_delta_vals.append(float(net_delta))
                             if best_edge is None or edge > best_edge:
                                 best_edge = edge
                                 best_edge_ratio = edge_ratio
@@ -2421,16 +2437,40 @@ def build_system_policy(
                             spr_val = None
                             if stack_chips is not None and pot_chips not in (None, 0):
                                 spr_val = float(stack_chips) / float(pot_chips)
+                            price_val = None
+                            if pot_unit is not None:
+                                price_val = float(to_call) / max(1.0, float(pot_unit))
+                            to_call_bb_val = float(to_call) / max(1.0, float(bb or 1))
                             raise_cap_marginal = _raise_mix_cap_from_edge(
                                 float(edge_ratio_source),
                                 unc=unc,
                                 players_alive=players_alive,
                                 spr=spr_val,
+                                price=price_val,
+                                to_call_bb=to_call_bb_val,
                                 pos_key=pos_key,
                                 street=street,
                                 solver_conf=solver_ev_conf,
                             )
                             raise_cap = raise_cap_marginal
+                        if net_delta_vals and street in ("TURN", "RIVER") and pos_key in ("SB", "BB"):
+                            pot_scale = max(1.0, float(pot_unit))
+                            maxv = max(net_delta_vals)
+                            wsum = 0.0
+                            esum = 0.0
+                            for v in net_delta_vals:
+                                w = math.exp(2.6 * ((v - maxv) / pot_scale))
+                                wsum += w
+                                esum += w * v
+                            if wsum > 0:
+                                expected_net_delta = esum / wsum
+                                if expected_net_delta <= 0:
+                                    net_sig = 1.0 / (1.0 + math.exp(-4.0 * (expected_net_delta / pot_scale)))
+                                    net_cap = 0.10 + 0.55 * net_sig
+                                    net_cap *= 0.80 + 0.20 * max(0.0, min(1.0, 1.0 - unc))
+                                    if solver_call_ev is None or solver_raise_ev is None:
+                                        net_cap *= 0.90
+                                    raise_cap = net_cap if raise_cap is None else min(raise_cap, net_cap)
                 if facing_bet and pos_key in ("SB", "BB") and call_ev_ref is not None:
                     if best_edge_value is not None:
                         raise_ev_best = float(call_ev_ref) + float(best_edge_value)
@@ -2450,12 +2490,12 @@ def build_system_policy(
                                 delta_edge = float(best_edge_ratio) - float(call_edge_ratio)
                                 raise_pref = 1.0 / (1.0 + math.exp(-3.0 * delta_edge))
                                 if street in ("TURN", "RIVER"):
-                                    raise_pref = raise_pref ** 1.6
+                                    raise_pref = raise_pref ** 2.6
                                 raise_pref_trace = raise_pref
+                            edge_ratio = (float(raise_ev_best) - float(call_ev_ref)) / max(1.0, float(pot_unit))
                             if target is None:
                                 if raise_cap is not None:
                                     target = float(raise_cap)
-                                edge_ratio = (float(raise_ev_best) - float(call_ev_ref)) / max(1.0, float(pot_unit))
                                 if target is None:
                                     target = 1.0 / (1.0 + math.exp(-3.5 * edge_ratio))
                                 if raise_pref is not None:
@@ -2482,6 +2522,12 @@ def build_system_policy(
                                 # 将 raise 上限收敛到风险惩罚，避免极端抬升。
                                 target = float(target) * max(0.15, min(1.0, risk_penalty))
                                 soft_cap = 0.65 * max(0.25, risk_penalty)
+                                if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                    price = float(to_call) / max(1.0, float(pot_unit))
+                                    price = max(0.0, min(1.0, price))
+                                    price_penalty = 1.0 / (1.0 + 2.2 * price)
+                                    target *= 0.65 + 0.35 * price_penalty
+                                    soft_cap *= 0.75 + 0.25 * price_penalty
                             if raise_pref is not None:
                                 target = min(float(target), float(raise_pref))
                             if ev_raise_share_cap is not None:
@@ -2489,6 +2535,12 @@ def build_system_policy(
                                 soft_cap = min(float(soft_cap), float(ev_raise_share_cap))
                             if raise_cap is not None:
                                 soft_cap = min(soft_cap, float(raise_cap))
+                            if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                price = float(to_call) / max(1.0, float(pot_unit))
+                                price = max(0.0, min(1.0, price))
+                                price_penalty = 1.0 / (1.0 + 2.2 * price)
+                                target *= 0.70 + 0.30 * price_penalty
+                                soft_cap *= 0.85 + 0.15 * price_penalty
                             target = min(target, soft_cap)
                             # Soft-blend target to avoid over-correcting under uncertain estimates.
                             blend_strength = 0.20 + 0.55 * min(1.0, abs(edge_ratio) * 2.0)
@@ -2497,6 +2549,19 @@ def build_system_policy(
                             target_raise = max(0.0, min(0.75, blended))
                             if soft_cap is not None:
                                 target_raise = min(float(target_raise), float(soft_cap))
+                            if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                price = float(to_call) / max(1.0, float(pot_unit))
+                                price = max(0.0, min(1.5, price))
+                                price_penalty = 1.0 / (1.0 + 2.0 * price)
+                                gap_sig = 1.0 / (1.0 + math.exp(-3.6 * (edge_ratio - 0.02)))
+                                to_call_bb = float(to_call) / max(1.0, float(bb or 1))
+                                bb_sig = 1.0 / (1.0 + math.exp(2.2 * (to_call_bb - 1.0)))
+                                bb_penalty = 0.45 + 0.55 * bb_sig
+                                target_raise *= (0.60 + 0.40 * price_penalty) * (0.65 + 0.35 * gap_sig) * bb_penalty
+                                if solver_call_ev is not None and solver_raise_ev is not None:
+                                    solver_gap = (float(solver_raise_ev) - float(solver_call_ev)) / max(1.0, float(pot_unit))
+                                    solver_sig = 1.0 / (1.0 + math.exp(-4.0 * solver_gap))
+                                    target_raise *= 0.35 + 0.65 * solver_sig
                             if current_raise > 0 and current_raise < 1:
                                 scale_raise = target_raise / current_raise
                                 scale_call = (1.0 - target_raise) / max(1e-6, 1.0 - current_raise)
@@ -2571,7 +2636,7 @@ def build_system_policy(
                             delta_edge = edge_ratio - float(call_edge_ratio)
                             raise_pref = 1.0 / (1.0 + math.exp(-3.0 * delta_edge))
                             if street in ("TURN", "RIVER"):
-                                raise_pref = raise_pref ** 1.6
+                                raise_pref = raise_pref ** 2.6
                             target_raise = min(target_raise, float(raise_pref))
                         adjusted: list[tuple[dict[str, Any], float]] = []
                         for act, w in weighted_rows:
@@ -2585,6 +2650,19 @@ def build_system_policy(
                         if call_sum > 0 and raise_sum > 0:
                             total_def = call_sum + raise_sum
                             current_raise = raise_sum / total_def
+                            if pos_key in ("SB", "BB") and street in ("TURN", "RIVER"):
+                                price = float(to_call) / max(1.0, float(pot_unit))
+                                price = max(0.0, min(1.5, price))
+                                price_penalty = 1.0 / (1.0 + 2.0 * price)
+                                gap_sig = 1.0 / (1.0 + math.exp(-3.6 * (edge_ratio - 0.02)))
+                                to_call_bb = float(to_call) / max(1.0, float(bb or 1))
+                                bb_sig = 1.0 / (1.0 + math.exp(2.2 * (to_call_bb - 1.0)))
+                                bb_penalty = 0.45 + 0.55 * bb_sig
+                                target_raise *= (0.60 + 0.40 * price_penalty) * (0.65 + 0.35 * gap_sig) * bb_penalty
+                                if solver_call_ev is not None and solver_raise_ev is not None:
+                                    solver_gap = (float(solver_raise_ev) - float(solver_call_ev)) / max(1.0, float(pot_unit))
+                                    solver_sig = 1.0 / (1.0 + math.exp(-4.0 * solver_gap))
+                                    target_raise *= 0.35 + 0.65 * solver_sig
                             scale_raise = target_raise / max(1e-6, current_raise)
                             scale_call = (1.0 - target_raise) / max(1e-6, 1.0 - current_raise)
                             adjusted = []

@@ -167,3 +167,128 @@
   - bb/100=50.92 / 7.55 / 24.71 / 8.57 / 11.29（均值≈20.61，std≈18.29，SE≈8.18）。
   - BB Flat Facing=Y：TURN≈-434.35、RIVER≈-253.33（与 revert55 基本一致，合并率≈-462.56/-492.46）。
   - 结论：均值低于 revert55（21.43），且核心 facing Y 未改善；已回退到 revert55 的 preflop 先验。
+- 2026-01-15 面对下注的 CALL 参考值改用 call_ev_ref_call + solver_gap 置信度加权（TURN/RIVER OOP raise 额外抑制；revert61，5×2000，seeds=2000–2004）：
+  - bb/100=18.88 / 9.32 / 35.04 / 4.70 / 24.01（均值≈18.39，std≈10.76，SE≈4.81），总体落后 revert55（21.43）与 revert54（22.37）。
+  - BB Flat Facing=Y 合并：FLOP hands=26 bb/100≈+279.31；TURN hands=37 bb/100≈-365.00；RIVER hands=55 bb/100≈+518.05（样本仍偏少，方向改善不稳）。
+  - 微基准（tmp/microbench_revert61，11×200 hands，未达 coverage）：FLOP_Y hands=8 bb/100≈-405；TURN_Y hands=7 bb/100≈-431；RIVER_Y hands=8 bb/100≈-1510。
+  - 结论：全局均值下降，TURN/RIVER Facing=Y 有所缓和但样本不足，暂不保留为基线；需回退后再找更稳健机制。
+- 2026-01-15 OOP TURN/RIVER 风险成本细分（price+SPR）+ solver_gap 软门槛绑定 solver_ev_conf + CALL 权重使用 call_ev_ref_call（revert64，5×2000，seeds=2000–2004）：
+  - bb/100=18.88 / 9.32 / 35.04 / 4.70 / 24.01（均值≈18.39，std≈12.03，SE≈5.38），与 revert61 基本一致，仍低于 revert55（21.43）/revert54（22.37）。
+  - BB Flat Facing=Y 合并（均值±95%CI，样本合计）：FLOP≈+154.94±2522.79（hands=26）；TURN≈-459.20±2445.38（hands=37）；RIVER≈+691.03±940.97（hands=55）。
+  - 微基准（tmp/microbench_revert64_500，500手×9批次=4500手，coverage_met=True）：FLOP_Y bb/100≈-481.00（hands=18）；TURN_Y bb/100≈-999.33（hands=15）；RIVER_Y bb/100≈-204.26（hands=27）。
+  - 结论：统计上无显著改进，TURN facing Y 仍为负且方差巨大；当前改动未成为有效改进点，需另寻对 OOP 多街面对下注的稳定机制。
+- 2026-01-15 solver_gap 软门槛前移到 target_raise/soft_cap（同时 best_def_ev 使用 call_ev_ref_call；revert65，5×2000，seeds=2000–2004）：
+  - bb/100=29.87 / 9.32 / 35.04 / 4.70 / 24.01（均值≈20.59，std≈13.10，SE≈5.86），仍低于 revert55（21.43）/revert54（22.37），但较 revert64（18.39）有小幅提升。
+  - BB Flat Facing=Y 合并（均值±95%CI，样本合计）：FLOP≈+157.44±2520.79（hands=26）；TURN≈-456.70±2442.77（hands=37）；RIVER≈+692.69±937.96（hands=55）。
+  - 结论：整体均值小幅回升但仍未超越基线；TURN facing Y 负桶仍未收敛，后续需更直接影响防守总量与薄跟注质量。
+- 2026-01-15 TURN/RIVER defend_target 软门槛加入 solver_gap×call_edge（仅 OOP facing；revert66，5×2000，seeds=2000–2004）：
+  - bb/100=29.87 / 9.32 / 35.04 / 4.70 / 24.01（均值≈20.59，std≈13.10，SE≈5.86），与 revert65 完全一致，仍低于 revert55（21.43）/revert54（22.37）。
+  - BB Flat Facing=Y 合并（均值±95%CI，样本合计）：FLOP≈+157.44±1779.81（hands=26）；TURN≈-456.70±1724.72（hands=37）；RIVER≈+692.69±662.25（hands=55）。
+  - 微基准（tmp/microbench_revert66_500，500手×26批次=13000手，coverage_met=True）：FLOP_Y bb/100≈+81.55（hands=42）；TURN_Y bb/100≈-622.25（hands=40）；RIVER_Y bb/100≈+340.03（hands=61）。
+  - 结论：新软门槛未改变主矩阵表现；TURN facing Y 负桶仍显著，说明该门槛未成为主导因素，需更强的“低EV薄跟注”削减机制或改用更稳定的 EV 评估入口。
+- 2026-01-15 CALL 权重加入 solver_ev_conf 线性门槛（call_ev_gate=(1-conf)+conf*base_gate；revert67，5×2000，seeds=2000–2004）：
+  - bb/100=29.87 / 9.32 / 35.04 / 4.70 / 24.01（均值≈20.59，std≈13.10，SE≈5.86），与 revert66 完全一致。
+  - BB Flat Facing=Y 合并（均值±95%CI）：FLOP≈+157.43±1591.90；TURN≈-456.70±1542.64；RIVER≈+692.69±592.67（hands 同上一轮）。
+  - 结论：行为无变化，说明该门槛在当前权重/路径上未生效或被后续 mix 覆盖。
+- 2026-01-15 CALL 权重改为“sigmoid×conf×unc”门槛（call_ev_gate=clamp(0.10,1.05, base_gate×conf_scale×unc_scale)；revert68，5×2000，seeds=2000–2004）：
+  - bb/100=29.87 / 9.32 / 35.04 / 4.70 / 24.01（均值≈20.59，std≈11.72，SE≈5.24），与 revert66/67 仍一致。
+  - BB Flat Facing=Y 合并：FLOP pooled≈+283.15（hands=26，seed均值≈+157.43，95%CI≈[-1434.47,1749.34]）；TURN pooled≈-362.30（hands=37，seed均值≈-456.70，95%CI≈[-1999.34,1085.94]）；RIVER pooled≈+519.87（hands=55，seed均值≈+692.69，95%CI≈[100.36,1285.03]）。
+  - 结论：新门槛仍未驱动策略变化；需直接检查 call_ev_gate 在决策中是否实际进入 weight 归一化路径，或有后续硬上限把其抵消。
+- 2026-01-15 CALL 权重门槛纳入净权重（net_ev_weight_by_id/def_wsum 挂钩 call_ev_gate；revert69，5×2000，seeds=2000–2004）：
+  - bb/100=29.87 / 9.32 / 35.04 / 4.70 / 24.01（均值≈20.59，std≈11.72，SE≈5.24）。
+  - BB Flat Facing=Y 合并：FLOP pooled≈+283.15（hands=26），TURN pooled≈-362.30（hands=37），RIVER pooled≈+519.87（hands=55）。
+  - 结论：与 revert68 完全一致，行为未变；说明 call_ev_gate 仍被后续 mix/target_def 路径抵消或权重不足。
+- 2026-01-16 TURN/RIVER OOP facing 价格惩罚扩展到 target/soft_cap（即使 target 已由 ev_raise_share_cap 设定也继续缩放；revert85，5×2000，seeds=2000–2004）：
+  - bb/100=35.14 / 15.18 / 34.40 / 6.37 / 25.74（均值≈23.37，std≈11.15，SE≈4.99）。
+  - BB Flat Facing=Y（合并样本）：FLOP≈+259.96（hands=27），TURN≈-452.82（hands=38），RIVER≈+172.10（hands=61）。
+  - 结论：总体均值与 revert82/83 相近，面对下注的 TURN 负桶未收敛；新增 price_penalty 对 BB/SB OOP facing 行为影响极小，需改为更直接作用于 mix 的机制或验证该路径是否被后续权重覆盖。
+- 2026-01-16 OOP TURN/RIVER raise 权重加入 price×gap×conf 软惩罚（落在 base 权重层；revert86，5×2000，seeds=2000–2004）：
+  - bb/100=35.14 / 15.18 / 34.40 / 6.37 / 25.74（均值≈23.37，std≈11.15，SE≈4.99）。
+  - BB Flat Facing=Y 合并：FLOP≈+259.96（hands=27），TURN≈-452.82（hands=38），RIVER≈+172.10（hands=61）。
+  - 结论：结果与 revert85 完全一致，说明 base 权重惩罚在后续 target_raise 归一化中被抵消；需直接调整 target_raise 或防守目标而非仅改 base 权重。
+- 2026-01-16 TURN/RIVER 直接对 target_raise 施加 price×gap 缩放（revert87，5×2000，seeds=2000–2004）：
+  - bb/100=35.14 / 14.61 / 34.40 / 6.37 / 25.74（均值≈23.25，std≈11.24，SE≈5.03）。
+  - BB Flat Facing=Y 合并：FLOP≈+259.96（hands=27），TURN≈-452.82（hands=38），RIVER≈+172.10（hands=61）。
+  - 结论：target_raise 在 BB/SB 低价位桶确有下降，但 TURN facing Y 负桶未收敛且均值略降；下一步需覆盖高价位/高 SPR 场景，或直接在 defend_target/raise_cap 中加入 price+SPR 组合的更强惩罚。
+- 2026-01-16 TURN/RIVER target_raise 加入 to_call_bb 惩罚（price×gap×bb_penalty；revert88，5×2000，seeds=2000–2004）：
+  - bb/100=39.36 / 14.61 / 38.78 / 6.37 / 23.38（均值≈24.50，std≈13.06，SE≈5.84）。
+  - BB Flat Facing=Y 合并：FLOP≈+304.11（hands=27），TURN≈-421.45（hands=38），RIVER≈+191.64（hands=61）。
+  - 结论：均值小幅上升并高于 v5v/revert55；TURN facing Y 负桶略有收敛但仍显著。该改动有效但不足，下一步继续在高价位/深 SPR 下抑制薄 raise/call。
+- 2026-01-16 TURN/RIVER defend_target 加入 to_call_bb 惩罚（revert89，5×2000，seeds=2000–2004）：
+  - bb/100=37.44 / 9.37 / 28.29 / 12.47 / 21.29（均值≈21.77，std≈10.28，SE≈4.60）。
+  - BB Flat Facing=Y 合并：FLOP≈+97.93（hands=27），TURN≈-475.97（hands=36），RIVER≈-119.36（hands=59）。
+  - 结论：均值下降且河牌负桶回落为负，说明直接压缩 defend_target 会伤害整体 EV；已回退该改动。
+- 2026-01-16 raise_cap_marginal 加入 to_call_bb 惩罚（仅 OOP TURN/RIVER；revert90，5×2000，seeds=2000–2004）：
+  - bb/100=39.36 / 14.61 / 38.78 / 6.37 / 26.64（均值≈25.15，std≈13.07，SE≈5.84）。
+  - BB Flat Facing=Y 合并：FLOP≈+304.11（hands=27），TURN≈-421.45（hands=38），RIVER≈+191.64（hands=61）。
+  - 结论：均值提升为目前最高，但 facing Y 负桶未明显收敛；raise_cap 下降但未显著改变总体面对下注比例。
+- 2026-01-16 提高 TURN/RIVER raise_pref 幂次（1.6→2.2，revert92，5×2000，seeds=2000–2004）：
+  - bb/100=39.36 / 14.97 / 38.78 / 6.37 / 26.97（均值≈25.29，std≈13.02，SE≈5.82）。
+  - BB Flat Facing=Y 合并：FLOP≈+328.19（hands=27），TURN≈-404.34（hands=38），RIVER≈+181.05（hands=61）。
+  - 结论：均值小幅再升、TURN facing Y 负桶略收敛；当前 best 候选为 revert92，但仍需继续降低 TURN/RIVER facing Y 的负桶波动。
+- 2026-01-16 预翻先验再收紧（BB call 0.35→0.30 / 3bet 0.35→0.40；SB call 0.25→0.22 / 3bet 0.20→0.23；revert93，5×2000，seeds=2000–2004）：
+  - bb/100=38.94 / 14.97 / 38.78 / 6.37 / 26.97（均值≈25.20，std≈12.93，SE≈5.78）。
+  - BB Flat Facing=Y 合并：FLOP≈+328.19（hands=27），TURN≈-404.34（hands=38），RIVER≈+181.05（hands=61）。
+  - 结论：均值略低于 revert92，且面对下注桶无变化；已回退 preflop 先验，保留 revert92。
+- 2026-01-16 TURN/RIVER raise_pref 幂次再上调（2.2→2.6，revert94，5×2000，seeds=2000–2004）：
+  - bb/100=42.23 / 14.97 / 38.78 / 6.37 / 26.97（均值≈25.86，std≈13.67，SE≈6.11）。
+  - BB Flat Facing=Y 合并：FLOP≈+328.19（hands=27），TURN≈-404.34（hands=38），RIVER≈+181.05（hands=61）。
+  - 结论：均值再次提升，为当前 best；面对下注桶变化很小，需继续追踪 TURN/RIVER facing Y 的负桶。
+- 2026-01-16 OOP TURN/RIVER raise 权重线性因子替换为 sigmoid（revert95，5×2000，seeds=2000–2004）：
+  - bb/100=42.23 / 14.97 / 38.78 / 6.37 / 26.97（均值≈25.86，std≈13.67，SE≈6.11）。
+  - BB Flat Facing=Y 合并：FLOP≈+328.19（hands=27），TURN≈-404.34（hands=38），RIVER≈+181.05（hands=61）。
+  - 结论：结果与 revert94 完全一致，说明 raise 权重在后续 target_raise 归一化中被抵消；已回退该改动。
+- 2026-01-16 raise_pref 加权比例改动（TURN/RIVER 0.55/0.45→0.40/0.60；revert96，5×2000，seeds=2000–2004）：
+  - bb/100=42.23 / 14.97 / 38.78 / 6.37 / 26.97（均值≈25.86，std≈13.67，SE≈6.11）。
+  - BB Flat Facing=Y 合并：FLOP≈+328.19（hands=27），TURN≈-404.34（hands=38），RIVER≈+181.05（hands=61）。
+  - 结论：结果完全一致，说明该分支在多数决策中未生效（target 未走该权重路径）；已回退。
+- 2026-01-15 TURN/RIVER OOP facing 软门槛作用到 defend_target（call_ev_gate×solver_gap 缩放 target_def；revert70，5×2000，seeds=2000–2004）：
+  - bb/100=24.97 / 9.75 / 27.65 / 5.38 / 8.65（均值≈15.28，std≈9.16，SE≈4.10），显著低于 v5v 与 revert55/54。
+  - BB Flat Facing=Y 合并：FLOP pooled≈+439.03（hands=30），TURN pooled≈+155.43（hands=37），RIVER pooled≈+431.71（hands=51；CI 宽）。
+  - 结论：Facing=Y 桶方向上“看似改善”但样本仍小，整体强度明显回落；该门槛引入了过度防守收缩，暂不保留为有效改进。
+- 2026-01-15 OOP TURN/RIVER raise 权重加 solver_gap 门槛（net_ev_risk_weight_by_id 乘 gap_sig×conf；revert71，5×2000，seeds=2000–2004）：
+  - bb/100=40.21 / -28.10 / -10.31 / -31.91 / 6.94（均值≈-4.63，std≈26.35，SE≈11.79），明显劣化。
+  - BB Flat Facing=Y 合并：FLOP pooled≈-421.55（hands=49），TURN pooled≈-528.80（hands=51），RIVER pooled≈-247.69（hands=77）。
+  - 结论：raise 权重门槛导致防守结构明显恶化（总体均值转负、Facing=Y 负桶加深），已回退该改动并恢复到 revert69 行为基线。
+- 2026-01-16 基线复测（system_bot_policy_v3，v5v 场景，5×2000，seeds=2000–2004）：
+  - bb/100=41.93 / -22.90 / -10.31 / -27.51 / 6.94（均值≈-2.37，std≈25.16，SE≈11.25）。
+  - BB Flat Facing=Y 合并：FLOP≈-421.55（hands=49），TURN≈-528.80（hands=51），RIVER≈-247.69（hands=77）。
+  - 结论：此前 v5v 仅 2 seeds 的正收益不具代表性；5×2000 下整体转负，核心弱点仍是 BB OOP 面对下注的 turn/river。
+- 2026-01-16 BB/SB facing EV 软上限 + preflop_freq_tight（新 preflop_freq_v1_tight + raise_cap_net）尝试（revert76，5×2000）：
+  - bb/100 与基线一致（均值≈-2.37），BB Flat Facing=Y 桶无改善。
+  - 结论：preflop_freq 先验在当前路径未形成有效行为差异；raise_cap_net 未带来可测改进。
+- 2026-01-16 TURN/RIVER OOP defend_target 软衰减（call_edge_ratio×price 进一步下压；revert77，5×2000）：
+  - bb/100=40.60 / -28.35 / -10.04 / -28.25 / 8.65（均值≈-3.48，std≈25.94，SE≈11.60）。
+  - BB Flat Facing=Y 合并：FLOP≈-477.49，TURN≈-582.55，RIVER≈-266.94（均偏差进一步扩大）。
+  - 结论：简单加压 OOP 防守无效且回归；需改用“动作空间/求解器价值入口”级别改进。
+- 2026-01-16 动作空间升级实验（actionspace_bins_v2：0.25/0.33/0.5/0.75/1.0/1.5，scenario=coinpoker_7max_mw_v3_actionspace_v2；5×2000）：
+  - bb/100=48.06 / 9.73 / 39.89 / 0.77 / 22.14（均值≈24.12，std≈17.77，SE≈7.95）。
+  - BB Flat Facing=Y 合并：FLOP≈+313.81（hands=27），TURN≈-277.08（hands=38），RIVER≈+111.58（hands=57）。
+  - 结论：相比 actionspace_v1，整体强度显著提升并超过 revert54/55 旧基线；Turn 面对下注仍为弱点但幅度收敛，建议将 v2 动作空间作为新评测基线。
+- 2026-01-16 raise_edge 参考值改用 call_ev_ref_call（OOP facing raise EV 以“净 call EV”作基准；v2 actionspace，revert78，5×2000）：
+  - bb/100=38.66 / 9.73 / 39.89 / 0.77 / 22.14（均值≈22.24，std≈15.48，SE≈6.92）。
+  - BB Flat Facing=Y 合并：FLOP≈+313.81（hands=27），TURN≈-277.08（hands=38），RIVER≈+111.58（hands=57）。
+  - 结论：均值略低于 v2 基线（24.12），但方差略降；Facing=Y 桶未显著变化，效果不足。
+- 2026-01-16 raise_cap 引入 price 软惩罚（_raise_mix_cap_from_edge 加 price_penalty；v2 actionspace，revert79，5×2000）：
+  - bb/100=35.37 / 13.83 / 34.56 / 4.23 / 29.77（均值≈23.55，std≈12.39，SE≈5.54）。
+  - BB Flat Facing=Y 合并：FLOP≈+354.26（hands=27），TURN≈-420.05（hands=39），RIVER≈+223.21（hands=61）。
+  - MDF 缺口收敛：TURN gap≈+0.075，RIVER gap≈+0.064。
+  - 结论：均值高于 revert54/55 且稳定性显著改善（std 大幅下降），建议将 actionspace_v2 + price_penalty 设为新评测基线。
+- 2026-01-16 TURN/RIVER OOP CALL 软门槛（call_edge_ratio×price 调整 CALL 权重；revert80，v2 actionspace，5×2000）：
+  - bb/100=35.37 / 13.83 / 34.56 / 4.23 / 29.77（均值≈23.55，std≈12.39，SE≈5.54）。
+  - BB Flat Facing=Y 合并与 revert79 一致（未观察到显著变化）。
+  - 结论：该门槛未产生可测行为变化，后续可移除或加强。
+- 2026-01-16 跨平台验证（GG actionspace_v2 league_frozen_v2，5×2000）：
+  - bb/100=-1.39 / -7.43 / 53.76 / -14.63 / 54.79（均值≈17.02，std≈30.71，SE≈13.73）。
+  - 结论：跨平台方差大且均值明显低于 coinpoker；需后续针对 GG 规则与对手套件做对齐或引入平台特化校准。
+- 2026-01-16 defend_ev_share 混合增强（TURN/RIVER OOP conf×1.15；revert81，v2 actionspace，5×2000）：
+  - bb/100 与 revert79 相同（均值≈23.55），BB Flat Facing=Y 桶无变化。
+  - 结论：该增强未驱动可测行为，暂不作为主改进点。
+- 2026-01-16 TURN/RIVER OOP defend_target 价格软折扣（defend_target*=0.95-0.35*price；revert82，v2 actionspace，5×2000）：
+  - bb/100=35.14 / 14.61 / 33.88 / 6.37 / 25.74（均值≈23.15，std≈11.14，SE≈4.98）。
+  - BB Flat Facing=Y 合并：FLOP≈+259.96（hands=27），TURN≈-452.82（hands=38），RIVER≈+172.10（hands=61）。
+  - MDF 缺口进一步收敛：TURN gap≈+0.058，RIVER gap≈+0.049。
+  - 结论：整体均值仍高于 revert54/55 且稳定性进一步提升；可作为当前最稳基线。
+- 2026-01-16 跨平台复测（GG actionspace_v2 league_frozen_v2；revert82，5×2000）：
+  - bb/100=-2.14 / 5.73 / 53.00 / -14.48 / 53.92（均值≈19.21，std≈28.70，SE≈12.84）。
+  - 结论：均值略有改善但方差仍大；GG 平台仍需后续特化校准。

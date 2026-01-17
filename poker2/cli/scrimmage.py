@@ -2454,7 +2454,7 @@ def _build_seat_policies(
 
 def main(argv: list[str] | None = None) -> int:  # pragma: no cover
     p = argparse.ArgumentParser()
-    p.add_argument("--scenario", default="coinpoker_7max_mw_v3_actionspace")
+    p.add_argument("--scenario", default="coinpoker_7max_mw_v3_actionspace_v2")
     p.add_argument("--profile", default="internal_profile_v1")
     p.add_argument("--policy", default="system_bot_policy_v3")
     p.add_argument("--opponents", default="system_bot_league_7max_frozen_v1")
