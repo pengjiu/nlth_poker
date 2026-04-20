@@ -17,6 +17,7 @@ from poker2.protocol.spot_policy import load_spot_policy, spot_policy_digest
 from poker2.runtime.artifact_store import ArtifactStoreError, resolve_artifact_path
 from poker2.runtime.ev_core import action_ev, equity_uncertainty, estimate_rake
 from poker2.runtime.hand_eval import board_texture, estimate_equity, estimate_equity_vs_range, parse_card_token
+from poker2.runtime.belief_search import BeliefSearchConfig, choose_action_with_belief_search
 from poker2.runtime.spot_policy import apply_spot_policy_overlay, build_spot_context
 from poker2.protocol.retaliation_model import load_retaliation_model, retaliation_bucket_key
 from poker2.protocol.treepath_mapping import (
@@ -654,6 +655,19 @@ def _parse_system_params(obj: Any) -> dict[str, Any]:
         "hu_rollout_std_beta_bp",
         "hu_solver_gap_enable_bp",
         "hu_rollout_samples",
+        "belief_search_enable_bp",
+        "belief_search_flop_enable_bp",
+        "belief_search_turn_enable_bp",
+        "belief_search_river_enable_bp",
+        "belief_search_hu_only_bp",
+        "belief_search_world_samples",
+        "belief_search_max_range_combos",
+        "belief_search_max_raise_actions",
+        "belief_search_min_pot_bb_bp",
+        "belief_search_risk_aversion_bp",
+        "belief_search_solver_blend_bp",
+        "belief_search_future_aggression_bonus_bp",
+        "belief_search_future_passive_penalty_bp",
     ):
         val = obj.get(key)
         if isinstance(val, int):
@@ -1207,6 +1221,23 @@ def build_system_policy(
         hu_rollout_turn_enable = 0.0
     hu_rollout_samples = max(8, min(128, int(params.get("hu_rollout_samples", 48))))
     hu_rollout_beta = max(0.0, min(1.0, float(params.get("hu_rollout_std_beta_bp", 2500)) / 10000.0))
+    belief_search_config = BeliefSearchConfig.from_mapping(
+        {
+            "enabled": bool(int(params.get("belief_search_enable_bp", 10000) or 0) > 0),
+            "flop_enable": bool(int(params.get("belief_search_flop_enable_bp", 3500) or 0) > 0),
+            "turn_enable": bool(int(params.get("belief_search_turn_enable_bp", 10000) or 0) > 0),
+            "river_enable": bool(int(params.get("belief_search_river_enable_bp", 10000) or 0) > 0),
+            "hu_only": bool(int(params.get("belief_search_hu_only_bp", 10000) or 0) > 0),
+            "world_samples": int(params.get("belief_search_world_samples", 72) or 72),
+            "max_range_combos": int(params.get("belief_search_max_range_combos", 160) or 160),
+            "max_raise_actions": int(params.get("belief_search_max_raise_actions", 3) or 3),
+            "min_pot_bb": float(params.get("belief_search_min_pot_bb_bp", 600) or 600) / 100.0,
+            "risk_aversion": float(params.get("belief_search_risk_aversion_bp", 1800) or 1800) / 10000.0,
+            "solver_blend": float(params.get("belief_search_solver_blend_bp", 1500) or 1500) / 10000.0,
+            "future_aggression_bonus": float(params.get("belief_search_future_aggression_bonus_bp", 500) or 500) / 10000.0,
+            "future_passive_penalty": float(params.get("belief_search_future_passive_penalty_bp", 800) or 800) / 10000.0,
+        }
+    )
     opponent_pool_ref = params.get("opponent_pool_ref") or "path:specs/opponents/pools/system_bot_pool_v2.json"
     opponent_pool_cdf: list[tuple[float, float, str]] = []
     if hu_rollout_enable > 0 and isinstance(opponent_pool_ref, str):
@@ -8256,6 +8287,71 @@ def build_system_policy(
                 return {"kind": "CHECK", "target_total_commit_chips": actor_commit}
             return {"kind": "CALL", "target_total_commit_chips": call_target}
 
+        def _run_belief_search_postflop(
+            *,
+            legal_actions: list[dict[str, Any]],
+            obs: dict[str, Any],
+            pot: int,
+            actor_commit: int,
+            to_call: int,
+            actor_stack: int,
+            players_alive: int,
+            street: str | None,
+            state_hash: str | None,
+            pos_key: str | None,
+            prior_street_aggressor: bool | None,
+            uncertainty: float | None,
+            solver_call_ev: float | None = None,
+            solver_raise_ev: float | None = None,
+            solver_hint_kind: str | None = None,
+            solver_hint_target: int | None = None,
+        ) -> dict[str, Any] | None:
+            if not belief_search_config.enabled:
+                return None
+            hole_map = obs.get("hole_cards_by_seat") or {}
+            hole_raw = hole_map.get(str(seat_id)) if isinstance(hole_map, dict) else None
+            board_raw = obs.get("board_cards") or []
+            if not isinstance(hole_raw, list) or len(hole_raw) != 2:
+                return None
+            if not isinstance(board_raw, list):
+                return None
+            hero_cards = [parse_card_token(c) for c in hole_raw]
+            board_cards = [parse_card_token(c) for c in board_raw]
+            if any(c is None for c in hero_cards) or any(c is None for c in board_cards):
+                return None
+            try:
+                result = choose_action_with_belief_search(
+                    legal_actions=legal_actions,
+                    hero_hole=tuple(hero_cards),  # type: ignore[arg-type]
+                    board=tuple(board_cards),  # type: ignore[arg-type]
+                    pot_chips=pot,
+                    actor_commit=actor_commit,
+                    to_call=to_call,
+                    stack_chips=actor_stack,
+                    players_alive=players_alive,
+                    street=street,
+                    state_hash=state_hash,
+                    bb=bb,
+                    pos_key=pos_key,
+                    prior_street_aggressor=prior_street_aggressor,
+                    uncertainty=uncertainty,
+                    rake_rate=rake_rate,
+                    rake_cap=rake_cap,
+                    no_flop_no_drop=no_flop_no_drop,
+                    solver_call_ev=solver_call_ev,
+                    solver_raise_ev=solver_raise_ev,
+                    solver_hint_kind=solver_hint_kind,
+                    solver_hint_target=solver_hint_target,
+                    config=belief_search_config,
+                )
+            except Exception:
+                if strict_mode:
+                    raise
+                return None
+            if result is None:
+                return None
+            return result.action
+
         def _finalize_postflop_action(
             action: dict[str, Any] | None,
             *,
@@ -9642,6 +9738,35 @@ def build_system_policy(
                 defend_target = None
                 force_defend = None
 
+            belief_action = _run_belief_search_postflop(
+                legal_actions=legal_pf,
+                obs=obs,
+                pot=pot,
+                actor_commit=actor_commit,
+                to_call=to_call,
+                actor_stack=actor_stack,
+                players_alive=players_alive_pf,
+                street=snap.get("street"),
+                state_hash=state_hash,
+                pos_key=pos_key_post,
+                prior_street_aggressor=prior_street_aggressor,
+                uncertainty=uncertainty_pf,
+            )
+            if belief_action is not None:
+                return _finalize_postflop_action(
+                    belief_action,
+                    legal_actions=legal_pf,
+                    equity_val=equity_pf_eff,
+                    uncertainty_val=uncertainty_pf,
+                    defend_target=defend_target,
+                    pos_key=pos_key_post,
+                    pot=pot,
+                    to_call=to_call,
+                    players_alive=players_alive_pf,
+                    street=snap.get("street"),
+                    force_defend=force_defend,
+                )
+
             if players_alive_pf >= 3:
                 solver_hint_kind: str | None = None
                 solver_hint_target: int | None = None
@@ -10391,6 +10516,11 @@ def build_system_policy(
         "hu_rollout_turn_enable_bp": int(round(hu_rollout_turn_enable * 10000)),
         "hu_rollout_samples": int(hu_rollout_samples),
         "hu_rollout_std_beta_bp": int(round(hu_rollout_beta * 10000)),
+        "belief_search_enabled": bool(belief_search_config.enabled),
+        "belief_search_world_samples": int(belief_search_config.world_samples),
+        "belief_search_max_range_combos": int(belief_search_config.max_range_combos),
+        "belief_search_min_pot_bb_bp": int(round(belief_search_config.min_pot_bb * 100)),
+        "belief_search_risk_aversion_bp": int(round(belief_search_config.risk_aversion * 10000)),
         "adaptation_digest": adaptation_digest,
     }
     # If the solver root is provided in paths_trace, compute solver_build_id for provenance.
