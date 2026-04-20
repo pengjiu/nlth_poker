@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "d3583a2b5d274946fe89fe7d1197541d9577203ffd88b5cf07d939bf2948a367"
+    "hex": "e9a37025df009cebd25f75d195ff9fa466aba7699f344a36755bdd3c1308fdc5"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "system_bot_policy_v3 params + fixed postflop solver build"

@@ -1,28 +1,41 @@
 # Poker2
 
-一个面向德州扑克 AI / 规则验证 / 回放分析的研究型工程仓库。它不是“只有一个训练脚本”的项目，而是一套带有契约、事件流、门禁、回放和批量评测能力的框架。
+`Poker2` 是一个面向 No-Limit Texas Hold'em 的研究型工程仓库，目标不是“跑一段训练脚本”，而是把策略执行、契约校验、事件流、回放、门禁和批量评测组织成一套可复现、可追溯、可验证的系统。
 
-这个仓库的核心目标有 3 个：
+它的核心价值有三点：
 
-- 让每次执行都可重放、可追溯、可验证。
-- 让规则、哈希、门禁、评测口径保持单一真相。
-- 让策略试验、批量对局、基线对比、故障定位都能落到结构化产物。
-
-如果你是第一次接触这个项目，建议按本文的顺序操作：
-
-1. 先安装依赖并跑 `doctor`。
-2. 再跑一手 `run_hand`，确认本机环境正常。
-3. 然后学会 `replay` 和 `stats`。
-4. 最后再进入 `scrimmage` / `eval_full` / `loop`。
+- 同一输入应得到稳定、可重放的执行结果。
+- 规则、哈希、契约和评测口径必须保持单一真相。
+- 策略试验、基线比较、回归诊断必须落到结构化产物，而不是散落日志。
 
 ## 项目能力
 
-- 单手运行：从 HRC `settings.json` 生成可回放 `EventStream`。
-- 批量对局：按 `scenario/profile/policy/opponents` 跑多手评测。
-- 回放定位：按 `hand_id` / `decision_id + state_hash` 精确回放。
-- 统计与门禁：对 `EventStream` 和 golden fixtures 做一致性校验。
-- 基线评测：支持 Tier-A / Tier-P / paired compare / pool eval / BR proxy。
-- 自动化优化 loop：支持手动启动高级迭代工具链。
+- 单手执行：从 HRC 风格 `settings.json` 生成 `EventStream`
+- 批量对局：按 `scenario / profile / policy / opponents` 跑多手评测
+- 精确回放：按 `hand_id` 或 `decision_id + state_hash` 定位决策点
+- 契约与门禁：对协议对象、fixtures、eventstream 做严格校验
+- 基线评测：支持 Tier-A / Tier-P / paired compare / pool eval / BR proxy
+- 自动化迭代：提供 loop 与相关辅助脚本，但默认只建议手动启动
+
+## 仓库内容
+
+下面这些关键资产已经随仓库提供，GitHub 新 clone 后就应该存在：
+
+- `specs/preflop/hrc_hand2/`
+  完整翻前节点数据目录，当前仓库内约 7858 个文件
+- `fixtures/internal/`
+  内置 golden fixtures、eventstream、pack
+- `specs/retaliation/retaliation_model_v1.json`
+  系统策略默认使用的 retaliation model 静态资产
+- `specs/`
+  scenarios、policies、policy params、profiles、opponents、rulesets、spot policies
+
+运行过程中生成的临时结果仍然会落在：
+
+- `tmp/`
+- `artifacts/`
+
+这两类目录属于运行输出，不是规范真相来源。
 
 ## 仓库结构
 
@@ -34,141 +47,57 @@ poker2/
 │   ├── environment/         # 执行环境与账本
 │   ├── runtime/             # 策略、注册表、运行时逻辑
 │   ├── gates/               # 各类 Gate / Guard
-│   └── engines/             # 求解器与可选 Rust/PyO3 绑定
-├── specs/                   # scenario / policy / profile / opponents / ruleset
-├── fixtures/                # 内置 golden fixtures 与 eventstream
-├── tests/                   # pytest 测试集
+│   └── engines/             # 求解器与可选 Rust / PyO3 绑定
+├── specs/                   # scenarios / policies / rulesets / opponents / static assets
+├── fixtures/                # 内置 fixtures 与 eventstream
+├── tests/                   # pytest 测试
 ├── tools/                   # loop、launchd、清理、辅助脚本
 ├── notes/                   # 迭代日志与评测协议
 ├── ARCHIETECTURE.md         # 架构规范唯一权威文档
-└── AGENTS.md                # AI/工具协作约束
+└── README.md                # 项目入口文档
 ```
-
-## Git / GitHub 发布建议
-
-这个项目已经是一个 Git 仓库，不需要重新 `git init`。上传到 GitHub 前，建议按下面的边界管理内容。
-
-### 应该提交到仓库的内容
-
-- `poker2/`：核心源码
-- `specs/`：scenario / policy / profile / opponents / ruleset / preflop 数据
-- `fixtures/`：内置 golden fixtures、eventstream、pack
-- `tests/`：自动化测试
-- `tools/`：可复用脚本
-- `notes/`：规范性笔记和评测协议
-- `contractkit/`
-- `README.md`、`ARCHIETECTURE.md`、`AGENTS.md`
-- `pyproject.toml`、`requirements.txt`、`requirements-dev.txt`
-- `.gitignore`、`.gitattributes`
-
-### 不应该提交到仓库的内容
-
-- `.venv/`、`venv/`、`env/`
-- `tmp/`：运行时输出、loop 中间结果、实验临时文件
-- `artifacts/`：本地构建和实验产物
-- `worktrees/`：本地 worktree 副本
-- `.pytest_cache/`、`.ruff_cache/`、`__pycache__/`、`.coverage*`
-- `.pydeps/`：本地分析图/依赖图输出
-- `target/`、`.cargo/`、`tools/.venv_maturin/`
-- `.DS_Store`、`.idea/`、`.vscode/`
-
-### 当前仓库已经做好的 Git 配置
-
-- `.gitignore`：忽略本地环境、缓存、运行产物、Rust 构建目录
-- `.gitattributes`：强制 `json/ndjson/sh/py/md` 使用 LF，避免跨平台换行问题
-
-这样处理后，别人从 GitHub 拉下来时看到的是“源码 + 规范 + specs + fixtures + tests”，而不是你的本地环境和跑出来的临时产物。
 
 ## 环境要求
 
 - Python `>= 3.11`
-- macOS / Linux / WSL 均可，本文示例按 `zsh` 写
+- macOS / Linux / WSL
 - 推荐使用虚拟环境
 
 可选依赖：
 
-- `rustc` / `cargo`
+- `rustc`
+- `cargo`
 - `maturin`
 
-只有在你要使用 postflop Rust / PyO3 绑定时，才需要 Rust 工具链。纯 Python 主链路可以先不装。
+只有在你要启用 postflop Rust / PyO3 绑定时，才需要 Rust 工具链。纯 Python 主链路可以先不装。
 
 ## 安装
-
-### 1) 创建虚拟环境
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-```
-
-### 2) 安装依赖
-
-```bash
 pip install -r requirements-dev.txt
 pip install -e .
 ```
 
 说明：
 
-- `requirements.txt` 是运行时最小依赖。
-- `requirements-dev.txt` 在最小依赖之上增加了 `pytest` 和 `pytest-cov`。
-- `pip install -e .` 让你可以直接用 `python -m poker2.cli.xxx` 调用仓库代码。
-
-## 先理解 2 套入口
-
-这个项目最容易让新手混淆的地方，就是 `--settings` 和 `--scenario` 不是一回事。
-
-### 入口 A：`--settings`
-
-适合：
-
-- 跑单手
-- 从 HRC 风格配置直接生成事件流
-- 验证 rake / rounding / reopen 这类规则口径
-
-典型命令：
-
-- `python -m poker2.cli.run_hand`
-- `python -m poker2.cli.run_batch`
-- `python -m poker2.cli.doctor options-hash-from-hrc`
-
-### 入口 B：`--scenario`
-
-适合：
-
-- 跑真实评测
-- 批量对局
-- 基线比较
-- 带 profile / policy / opponents 的完整实验
-
-典型命令：
-
-- `python -m poker2.cli.scrimmage`
-- `python -m poker2.cli.scrimmage_batch`
-- `python -m poker2.cli.eval_full`
-
-结论：
-
-- 想快速确认程序能跑，用 `--settings`。
-- 想跑标准实验，不要只给 `scenario`，要把 `profile + policy + opponents` 一起给齐。
+- `requirements.txt` 是运行时依赖
+- `requirements-dev.txt` 包含测试与开发依赖
+- `pip install -e .` 让你可以直接使用 `python -m poker2.cli.xxx`
 
 ## 快速开始
 
-### 步骤 1：先跑最小健康检查
+### 1. 先跑最小健康检查
 
 ```bash
 python3 -m poker2.cli.doctor contractkit-vectors
 ```
 
-期望结果：
+期望输出为 JSON，且 `status=pass`。
 
-- 输出 JSON
-- `status=pass`
-
-这一步是最便宜的 smoke test。它通过，说明 contract kit 的基础向量校验没坏。
-
-### 步骤 2：跑一手牌，生成自己的 EventStream
+### 2. 跑一手牌，生成自己的 EventStream
 
 ```bash
 python3 -m poker2.cli.run_hand \
@@ -180,20 +109,12 @@ python3 -m poker2.cli.run_hand \
   --no-reopen-on-short-allin
 ```
 
-这条命令已经在当前仓库环境里验证通过。
-
-执行成功后你会拿到：
+执行成功后会生成：
 
 - `tmp/readme_demo_hand.ndjson`
-- 结构化 JSON 输出，包含 `event_stream_digest`、`run_id`、`scenario_id`、`options_hash`
+- 一段 JSON 输出，包含 `event_stream_digest`、`run_id`、`scenario_id`、`options_hash`
 
-注意：
-
-- `specs/preflop/settings.json` 里 `eqmodel.raked=true`，所以必须显式给 `--rounding-mode`。
-- `--starting-stacks-by-seat` 必须是合法 JSON 字符串。
-- `--button-seat` 必须和玩家座位一致。
-
-### 步骤 3：回放这手牌
+### 3. 回放这手牌
 
 ```bash
 python3 -m poker2.cli.replay \
@@ -201,18 +122,17 @@ python3 -m poker2.cli.replay \
   --strict
 ```
 
-如果你想定位某个决策点，可以再加：
+如果要定位某个决策点：
 
 ```bash
---decision-id <id> --state-hash <hash>
+python3 -m poker2.cli.replay \
+  --eventstream tmp/readme_demo_hand.ndjson \
+  --decision-id <id> \
+  --state-hash <hash> \
+  --strict
 ```
 
-规则：
-
-- 只给 `--decision-id` 不够，必须同时给 `--state-hash`
-- 这是为了保证定位是可重放、可唯一确认的
-
-### 步骤 4：验证内置 golden fixtures
+### 4. 验证内置 fixtures
 
 ```bash
 python3 -m poker2.cli.stats fixtures-pack \
@@ -221,30 +141,57 @@ python3 -m poker2.cli.stats fixtures-pack \
   --strict
 ```
 
-这条命令也已在当前仓库环境里验证通过。
+## 两套入口，先分清楚
 
-如果它通过，说明：
+这个项目最容易让新手混淆的地方，是 `--settings` 和 `--scenario` 完全不是一回事。
 
-- fixture pack 结构没坏
-- eventstream digest 一致
-- 规则口径与 pack 绑定一致
+### `--settings`
 
-## 新手最常用命令
+适合：
+
+- 跑单手
+- 从 HRC 风格配置直接生成事件流
+- 验证 rake / rounding / reopen 等规则口径
+
+典型命令：
+
+- `python -m poker2.cli.run_hand`
+- `python -m poker2.cli.run_batch`
+- `python -m poker2.cli.doctor options-hash-from-hrc`
+
+### `--scenario`
+
+适合：
+
+- 跑标准评测
+- 跑完整实验闭包
+- 带 `profile / policy / opponents` 的批量对局
+
+典型命令：
+
+- `python -m poker2.cli.scrimmage`
+- `python -m poker2.cli.scrimmage_batch`
+- `python -m poker2.cli.eval_full`
+
+结论：
+
+- 想确认环境能跑，用 `--settings`
+- 想跑正式实验，用 `--scenario + --profile + --policy + --opponents`
+
+## 常用命令
 
 | 目标 | 命令 | 说明 |
 | --- | --- | --- |
-| 最小健康检查 | `python3 -m poker2.cli.doctor contractkit-vectors` | 最推荐的第一条命令 |
+| 最小健康检查 | `python3 -m poker2.cli.doctor contractkit-vectors` | 推荐第一条命令 |
 | 单手生成事件流 | `python3 -m poker2.cli.run_hand ...` | 从 `settings.json` 跑一手牌 |
 | 批量单手导出 | `python3 -m poker2.cli.run_batch ...` | 连续生成多手 `ndjson` |
 | 回放事件流 | `python3 -m poker2.cli.replay --eventstream ...` | 看某手牌或某个决策点 |
 | 检查 fixtures | `python3 -m poker2.cli.stats fixtures-pack ...` | 校验 golden fixtures |
-| 检查单个事件流 | `python3 -m poker2.cli.stats eventstream ...` | 对单个 `ndjson` 跑统计/一致性 |
+| 检查单个事件流 | `python3 -m poker2.cli.stats eventstream ...` | 对单个 `ndjson` 跑统计 |
 | 跑一轮评测 | `python3 -m poker2.cli.scrimmage ...` | 标准实验入口 |
 | 跑完整评测矩阵 | `python3 -m poker2.cli.eval_full ...` | Tier-A / Tier-P / pool / BR |
 
 ## 标准评测示例
-
-如果你想跑真正的实验，不要从 `pipeline eval` 开始。对新手来说，最稳妥的是直接用 `scrimmage`。
 
 ```bash
 python3 -m poker2.cli.scrimmage \
@@ -259,19 +206,13 @@ python3 -m poker2.cli.scrimmage \
   --out-dir tmp/readme_scrimmage_demo
 ```
 
-这条命令已经在当前仓库环境里验证通过。
-
-执行成功后至少会生成：
+至少会生成：
 
 - `tmp/readme_scrimmage_demo/scrimmage_report.json`
 
-重要提醒：
+如果你只是确认环境是否通畅，不要一开始就跑 `scrimmage`。先把 `doctor`、`run_hand`、`replay`、`stats` 跑通。
 
-- `scrimmage` 不是“只给一个 scenario 就能跑”的脚本。
-- 对局手数太少时，可能因为 `iteration_protocol` 证据不足而 fail-fast。
-- 如果你只是想确认环境通不通，先跑 `doctor` 和 `run_hand`，不要一上来就跑 `scrimmage`。
-
-## 配置说明
+## 配置对象说明
 
 ### `scenario`
 
@@ -280,35 +221,35 @@ python3 -m poker2.cli.scrimmage \
 - 规则集
 - action space
 - preflop / postflop 引用
-- 适用的 opponent suite / mw ladder / triad
+- opponents / mw ladder / triad
 
-示例文件：
+示例：
 
 - [specs/scenarios/internal_hu_v1.json](specs/scenarios/internal_hu_v1.json)
 - [specs/scenarios/coinpoker_7max_mw_v3_actionspace_v2.json](specs/scenarios/coinpoker_7max_mw_v3_actionspace_v2.json)
 
 ### `profile`
 
-定义运行预算和并发配置，例如：
+定义运行预算与并发配置，例如：
 
 - worker 数
 - Monte Carlo rollout 预算
 
-示例文件：
+示例：
 
 - [specs/profiles/internal_profile_v1.json](specs/profiles/internal_profile_v1.json)
 
 ### `policy`
 
-定义系统策略闭包。
+定义系统策略闭包。当前正式基线请看：
 
-基线相关名称可参考 [notes/iteration_journal.md](notes/iteration_journal.md) 中“当前基线”段落。
+- [notes/iteration_journal.md](notes/iteration_journal.md)
 
 ### `opponents`
 
 定义对手套件。
 
-示例文件：
+示例：
 
 - [specs/opponents/suites/system_bot_league_7max_frozen_v1.json](specs/opponents/suites/system_bot_league_7max_frozen_v1.json)
 
@@ -316,31 +257,29 @@ python3 -m poker2.cli.scrimmage \
 
 这是 HRC 风格设置文件，适合 `run_hand` / `run_batch` / `doctor options-hash-from-hrc`。
 
-项目里现成可用的示例：
+现成示例：
 
 - [specs/preflop/settings.json](specs/preflop/settings.json)
 
 如果 `eqmodel.raked=true`：
 
-- 你必须显式给 `--rounding-mode`
+- 必须显式给 `--rounding-mode`
 - 某些命令还需要显式给 `--reopen-on-short-allin` 或 `--no-reopen-on-short-allin`
 
-## 输出产物怎么看
+## 输出产物
 
 ### `EventStream`
 
-文件格式：
-
-- NDJSON
-- LF 结尾
+- 格式：NDJSON
+- 每行 LF 结尾
 - 第一行是 header
 
-常见路径：
+常见位置：
 
 - `tmp/*.ndjson`
 - `artifacts/<run_id>/eventstream/eventstream.ndjson`
 
-### `Manifest / Report`
+### Manifest / Report
 
 典型目录结构：
 
@@ -351,21 +290,16 @@ artifacts/<run_id>/
 └── report/
 ```
 
-你通常会看到：
+常见文件：
 
 - `runspec.json`
 - `run_manifest.json`
 - `report.json`
 - `doctor_report.json`
 
-### `tmp/`
-
-`tmp/` 是实验输出区，不是规范定义区。可以删临时结果，但不要把它当成唯一真相来源。
-
-真正的规范来源是：
+真正的规范真相来源仍然是：
 
 - [ARCHIETECTURE.md](ARCHIETECTURE.md)
-- [AGENTS.md](AGENTS.md)
 - [notes/iteration_journal.md](notes/iteration_journal.md)
 
 ## 测试
@@ -376,7 +310,7 @@ artifacts/<run_id>/
 pytest
 ```
 
-只跑某一类：
+只跑常见子集：
 
 ```bash
 pytest tests/test_run_hand_tool_cli.py
@@ -384,52 +318,21 @@ pytest tests/test_replay_cli.py
 pytest tests/test_stats_cli.py
 ```
 
-当前 `pyproject.toml` 配置了覆盖率要求：
+当前仓库默认启用了覆盖率门槛：
 
 - `--cov-fail-under=95`
 
-所以测试不只是“能跑”，还要求覆盖率过线。
-
-## 高级用法
-
-### 完整评测
-
-你可以用 `eval_full` 跑更完整的矩阵：
-
-```bash
-python3 -m poker2.cli.eval_full --help
-```
-
-它适合：
-
-- Tier-A / Tier-P 评测
-- paired compare
-- pool eval
-- BR proxy
-
-但不适合第一次上手就跑，因为耗时和资源需求都更高。
-
-### Pipeline
-
-项目提供了 `pipeline` 子命令：
-
-```bash
-python3 -m poker2.cli.pipeline --help
-```
-
-但它更偏向内部流程编排，不是最推荐的新手入口。尤其是 `pipeline eval` 依赖运行上下文和 fixture 约束，第一次使用更容易踩到 fail-fast。
-
-### 自动 loop
+## 手动 loop
 
 当前仓库建议只手动启动 loop，不要默认后台自动拉起。
 
-手动启动：
+启动：
 
 ```bash
 zsh tools/ralph_autopilot_start.sh
 ```
 
-手动停止：
+停止：
 
 ```bash
 zsh tools/ralph_autopilot_stop.sh
@@ -441,29 +344,22 @@ zsh tools/ralph_autopilot_stop.sh
 zsh tools/launchd_status_ralph_loop.sh
 ```
 
-如果你明确要安装到 launchd：
+如果你明确需要 launchd：
 
 ```bash
 zsh tools/launchd_install_ralph_loop.sh
 zsh tools/launchd_uninstall_ralph_loop.sh
 ```
 
-不建议新手一开始就碰 loop。先把单手、回放、fixtures、scrimmage 跑明白，再进入自动化优化。
+## 常见问题
 
-## 常见报错与解决方式
-
-### 1) `MISSING_ROUNDING_MODE`
+### `MISSING_ROUNDING_MODE`
 
 原因：
 
-- `settings.json` 里启用了 rake，但你没有传 `--rounding-mode`
+- `settings.json` 启用了 rake，但命令没有提供 `--rounding-mode`
 
-解决：
-
-- 补上 `--rounding-mode floor`
-- 或者确认你的 `settings.json` 是否真的需要 rake
-
-### 2) `JSON_PARSE_FAIL`
+### `JSON_PARSE_FAIL`
 
 原因：
 
@@ -475,49 +371,31 @@ zsh tools/launchd_uninstall_ralph_loop.sh
 '{"1":10000,"2":10000}'
 ```
 
-### 3) `mw_ladder_id is required when multi-way may occur`
+### `mw_ladder_id is required when multi-way may occur`
 
 原因：
 
-- 你给了会产生多人局面的配置，但没有完整提供 multi-way 语义闭包
+- 你给了可能进入多人局的配置，但没有提供完整 multi-way 语义闭包
 
-解决：
+建议：
 
 - 优先使用已经打包好的 `scenario`
-- 不要自己随意拼参数
 
-### 4) `Iteration protocol validation failed: ['EVIDENCE_INCOMPLETE']`
+### `Iteration protocol validation failed: ['EVIDENCE_INCOMPLETE']`
 
 原因：
 
-- `scrimmage` 的手数太少，报告证据不足
+- `scrimmage` 手数太少，证据不足
 
-解决：
+建议：
 
 - 增加 `--hands`
-- 或先从 `run_hand` / `replay` / `stats` 学起
-
-### 5) `MISSING_FIXTURE`
-
-原因：
-
-- 某些 `pipeline` 路径依赖内置 fixture 或特定上下文
-
-解决：
-
-- 新手先不要从 `pipeline eval` 入手
-- 先用本文的 `run_hand` 和 `scrimmage`
+- 或先从 `run_hand / replay / stats` 入手
 
 ## 推荐阅读顺序
-
-如果你想真正读懂这个项目，而不是只会复制命令，按这个顺序看：
 
 1. [README.md](README.md)
 2. [ARCHIETECTURE.md](ARCHIETECTURE.md)
 3. [notes/iteration_journal.md](notes/iteration_journal.md)
 4. [poker2/cli](poker2/cli)
 5. [tests](tests)
-
-## License
-
-仓库内未发现明确的开源许可证文件。如果你准备对外开源，建议补一个 `LICENSE`，再公开发布。

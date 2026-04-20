@@ -46,9 +46,9 @@
   "policy_kind": "baseline",
   "policy_params_digest": {
     "alg": "sha256",
-    "hex": "088bc23ad27288448bf333dde95a3cc20c0ae3815c44e24fa784c7eddb9a5498"
+    "hex": "fa6163c9874e1c002a149dfad5807d29aed37f238383944555c2f4805221bdd9"
   },
   "stochastic": false,
   "policy_label": "system_bot_policy_v3_retaliation_weight_v1_high_price_defend_gate_v3",
-  "policy_id": "a2d07f6437b53281e3caf566ac922ed31fbab20aa5ffaea23ec65225a57cf148"
+  "policy_id": "00856d404e5637ccf249b057811b8c0fc487327a3c21ae05cb2c77be87e9dccc"
 }

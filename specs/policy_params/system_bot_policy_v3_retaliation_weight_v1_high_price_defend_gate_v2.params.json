@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "27a693b328352cf69d1aea53afc2c32999e29031ec9063ec1a27f9c983e4c08a"
+    "hex": "940f1fc3079ec32a18c5c4e984e6db9b4599055fe4e8981457c4d8dd9b333284"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + high-price defend gate v2 (0.20->gap0.02, 0.35->gap0.06)"

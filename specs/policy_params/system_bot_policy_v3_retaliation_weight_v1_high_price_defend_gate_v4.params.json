@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "0a9f1ec9bdf958eb65a655743bc13a2f35304e53c373abf70f6a9a712bb11bd5"
+    "hex": "b09a1d44a48fbfee4f555d7c27aa45483db9e91000916daef617b7bbd3a57bad"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + high-price defend gate v4 (SPR/OOP/MW tighten penalties)"

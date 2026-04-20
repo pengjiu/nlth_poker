@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "172d5909d036160542fee5580b125c511b45f547a864be451a5f766fc3ce3622"
+    "hex": "18608c17ba1a55936826568fb604ff64678620580a3f7c8a40ea3e4652c56d69"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + turn/river high-price raise scale (0.33->0.70, 0.50->0.50)"

@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "8dec1a5dc4cff3c501335ccd366d1d50b83004eedb9fcdae7273770556729953"
+    "hex": "e5de7afd35d98d72851dd1d2f3c7a8ad9c9d7cd661d07f91cd435937efd9a4e8"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + low SPR facing defense/raise caps"

@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "2aac66d9e37204010bf5e3e961964a1e1f064aa81c6bba4a13862fb324dddfde"
+    "hex": "b66bdf1fa4693fb972f45685493fe4963e031118572a954c2c958da98c5c5358"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + turn/river low-price facing defend boost"

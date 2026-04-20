@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "99a29f0f2224082b3f2404348e0d550139809bbbf0841105511d564d4c258c22"
+    "hex": "c38af6537efc3a6d918f0874309b165f4c53f2f511f4127f3dae224137fea16c"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "system_bot_policy_v3 params + enable HU turn rollout"

@@ -1,7 +1,7 @@
 {
   "params_schema_id": "system_bot_params_v5",
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
-  "retaliation_model_ref": "path:artifacts/retaliation_model_v1.json",
+  "retaliation_model_ref": "path:specs/retaliation/retaliation_model_v1.json",
   "retaliation_weight_bp": 250,
   "retaliation_prior_count": 8,
   "hu_range_enable_bp": 10000,

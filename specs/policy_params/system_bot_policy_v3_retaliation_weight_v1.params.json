@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "e215216c5717db78f3dc95f17001915ed6ac338f39637f30efa1f5e0dbfd871d"
+    "hex": "9977880253c5b64c48fef8f8e1a760de0a1904aacf4d4bb00ae487e999443f3a"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "baseline alias promoted to v8 closure (behavior-equivalent, distinct policy_id alias)"

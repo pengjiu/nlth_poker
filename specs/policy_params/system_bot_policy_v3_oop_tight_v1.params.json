@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "085f53e934a44bb2f58d87e78756cc1d89c80dd9519a4348e4560a448f62a5ab"
+    "hex": "69c98d868528029391c72541332392796b9264888da07f0b08b547c9802f8604"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "system_bot_policy_v3 params + OOP/SPR tighten v1"

@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "b86943a778b811b42cf60814ec6349072621204974d21d8b3ee03904a8eb4c1c"
+    "hex": "56b7719130b6a8dde9744a03b8ba961f504b9c91f67d9502c00f1dbb4cc0a5b2"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + high-price defend gate v9 (spr_low price-scaled gap penalty + spr_low threshold2 + spr_low penalty + wet turn/river threshold2/gap2)"

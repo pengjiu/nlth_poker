@@ -46,9 +46,9 @@
   "policy_kind": "baseline",
   "policy_params_digest": {
     "alg": "sha256",
-    "hex": "9ae5f1a73db61bc2d4efbddba93c3cc101f29b6af674535bcc73d81c0bf53b01"
+    "hex": "e3cb25e7abd608176daf09b458073a4cf1e242d68e0df2e2675f70c5f8b3bcf4"
   },
   "stochastic": false,
   "policy_label": "system_bot_policy_v3_turn_rollout",
-  "policy_id": "9ab01af6e7aa63661356297c0afcc359baf364f79503d022c73e8001973cf58d"
+  "policy_id": "e25a4eb5f8e010ae1aed15f37c757f6835c442c1f06cf72fe77f767b099a2d89"
 }

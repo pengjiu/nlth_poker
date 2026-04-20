@@ -1177,7 +1177,7 @@ def build_system_policy(
     adaptive_prior = max(1.0, min(64.0, float(params.get("adaptive_prior_count", 8))))
     adaptive_tight_enable = max(0.0, min(1.0, float(params.get("adaptive_tight_enable_bp", 10000)) / 10000.0))
     retaliation_model = None
-    retaliation_model_ref = params.get("retaliation_model_ref") or "path:artifacts/retaliation_model_v1.json"
+    retaliation_model_ref = params.get("retaliation_model_ref") or "path:specs/retaliation/retaliation_model_v1.json"
     fixed_solver_build_id = params.get("postflop_solver_build_id") or DEFAULT_POSTFLOP_SOLVER_BUILD_ID
     retaliation_bucket_spec: dict[str, Any] | None = None
     retaliation_index: dict[str, dict[str, int]] | None = None

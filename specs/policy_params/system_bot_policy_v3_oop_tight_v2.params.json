@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "a432cff7a8c948bf13c69400f8e8970d4c7b9e34d8cad74f00d562d239aec602"
+    "hex": "104f1475d9a2935b7dae35f810e0a299f9a72c1561625ea75aae4fc2642f44c6"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "system_bot_policy_v3 params + OOP risk tighten v2 (no realization, mw default)"

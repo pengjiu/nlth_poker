@@ -8,7 +8,7 @@
   "multiway_version": "v3",
   "system_bot_params_digest": {
     "alg": "sha256",
-    "hex": "7c34f978301468a8ba17ce8a31cf32d5bdad2d85c4603cada478dbfe0f85ade4"
+    "hex": "2976c404476ea8d14f82d30ed1d0219fe0afb031ce9d1b9f239e70d62755cde0"
   },
   "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
   "notes": "retaliation_weight_v1 + block raises when facing high price (>=0.20 pot)"
