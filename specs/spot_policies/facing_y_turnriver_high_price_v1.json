@@ -1,0 +1,36 @@
+{
+  "schema_id": "spot_policy_v1",
+  "spots": [
+    {
+      "spot_id": "oop_mw_facing_bet_turnriver_high_price_v1",
+      "enabled": true,
+      "when": {
+        "streets": [
+          "TURN",
+          "RIVER"
+        ],
+        "requires_facing_bet": true,
+        "pos_keys": [
+          "SB",
+          "BB"
+        ],
+        "players_alive_min": 3,
+        "players_alive_max": null,
+        "price_min_ppm": 220000,
+        "price_max_ppm": null,
+        "spr_min_milli": null,
+        "spr_max_milli": 3500,
+        "wet_min": 1,
+        "wet_max": null
+      },
+      "adjustments": {
+        "defend_target_scale_bp": 8800,
+        "defend_target_floor_bp": null,
+        "defend_target_max_bp": 5200,
+        "call_pref_floor_bp": 8400,
+        "raise_cap_max_bp": 700,
+        "trace_tag": "turnriver_high_price_call_first_v1"
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import pytest
 
 from poker2.runtime.system_policy import SystemPolicyError, build_system_policy, resolve_policy_artifacts
 from poker2.protocol.policy import load_policy_spec
+from poker2.protocol.spot_policy import load_spot_policy, spot_policy_digest
 from poker2.runtime import system_policy as system_policy_mod
 
 
@@ -26,10 +27,14 @@ def _paths_trace_for_system_policy() -> tuple[dict[str, str], dict[str, Any]]:
     postflop_path = repo / "fixtures" / "internal" / "artifacts" / "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932.bin"
     preflop_ranges = repo / "specs" / "preflop" / "preflop_ranges_v1.json"
     preflop_freq = repo / "specs" / "preflop" / "preflop_freq_v1.json"
+    preflop_freq_tight = repo / "specs" / "preflop" / "preflop_freq_v1_tight.json"
+    mw_strategy = repo / "specs" / "mw_strategy" / "mw_strategy_table_rake_v1.json"
     preflop_digest = {"alg": "sha256", "hex": _sha256_hex(preflop_path)}
     postflop_digest = {"alg": "sha256", "hex": _sha256_hex(postflop_path)}
     preflop_ranges_digest = {"alg": "sha256", "hex": _sha256_hex(preflop_ranges)}
     preflop_freq_digest = {"alg": "sha256", "hex": _sha256_hex(preflop_freq)}
+    preflop_freq_tight_digest = {"alg": "sha256", "hex": _sha256_hex(preflop_freq_tight)}
+    mw_strategy_digest = {"alg": "sha256", "hex": _sha256_hex(mw_strategy)}
     paths_trace = {
         "resolved_roots_abs": {},
         "resolved_artifacts": [
@@ -65,9 +70,29 @@ def _paths_trace_for_system_policy() -> tuple[dict[str, str], dict[str, Any]]:
                 "abs_path_or_null": str(preflop_freq),
                 "error_or_null": None,
             },
+            {
+                "artifact_ref": "path:preflop/preflop_freq_v1_tight.json",
+                "digest": preflop_freq_tight_digest,
+                "computed_digest_or_null": preflop_freq_tight_digest,
+                "resolved_ok": True,
+                "abs_path_or_null": str(preflop_freq_tight),
+                "error_or_null": None,
+            },
+            {
+                "artifact_ref": "path:mw_strategy/mw_strategy_table_rake_v1.json",
+                "digest": mw_strategy_digest,
+                "computed_digest_or_null": mw_strategy_digest,
+                "resolved_ok": True,
+                "abs_path_or_null": str(mw_strategy),
+                "error_or_null": None,
+            },
         ],
     }
     return preflop_digest, paths_trace
+
+
+def _load_test_policy_spec(repo: Path) -> dict[str, Any]:
+    return load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v3.json")
 
 
 def test_system_policy_prefers_open_size() -> None:
@@ -76,7 +101,7 @@ def test_system_policy_prefers_open_size() -> None:
     import json
 
     ruleset_obj = json.loads(ruleset)
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=1,
@@ -118,7 +143,7 @@ def test_system_policy_position_open_size() -> None:
 
     ruleset_obj = json.loads(ruleset)
     ruleset_obj["blinds"] = {"sb_chips": 50, "bb_chips": 100}
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=3,
@@ -199,13 +224,63 @@ def test_position_key_fallbacks() -> None:
     assert system_policy_mod._position_key(4, 2, seats) == "BB"
 
 
+def test_parse_system_params_rejects_unknown_schema() -> None:
+    with pytest.raises(SystemPolicyError) as exc:
+        system_policy_mod._parse_system_params({"params_schema_id": "system_bot_params_v999"})
+    assert exc.value.code == "PARAMS_SCHEMA"
+
+
+def test_parse_system_params_accepts_v6_schema() -> None:
+    params = system_policy_mod._parse_system_params(
+        {
+            "params_schema_id": "system_bot_params_v6",
+            "retaliation_weight_bp": 350,
+        }
+    )
+    assert params["retaliation_weight_bp"] == 350
+
+
+def test_parse_system_params_accepts_spot_policy_fields() -> None:
+    digest = {"alg": "sha256", "hex": "1" * 64}
+    params = system_policy_mod._parse_system_params(
+        {
+            "params_schema_id": "system_bot_params_v6",
+            "spot_policy_ref": "path:specs/spot_policies/facing_y_turnriver_high_price_v1.json",
+            "spot_policy_digest": digest,
+        }
+    )
+    assert params["spot_policy_ref"] == "path:specs/spot_policies/facing_y_turnriver_high_price_v1.json"
+    assert params["spot_policy_digest"] == digest
+
+
+def test_build_system_policy_loop_trial_loads_spot_policy_meta() -> None:
+    repo = Path(__file__).resolve().parents[1]
+    ruleset_obj = json.loads((repo / "specs" / "rulesets" / "internal_ruleset_v1.json").read_text())
+    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v3_loop_trial.json")
+    _digest, paths_trace = _paths_trace_for_system_policy()
+    _policy_fn, meta = build_system_policy(
+        seat_id=1,
+        seed=7,
+        policy_spec=pol_spec,
+        ruleset=ruleset_obj,
+        paths_trace=paths_trace,
+        strict_mode=True,
+    )
+    expected_digest = spot_policy_digest(
+        load_spot_policy(repo / "specs" / "spot_policies" / "facing_y_turnriver_high_price_v1.json", strict_mode=True),
+        strict_mode=True,
+    )
+    assert meta["spot_policy_ref"] == "path:specs/spot_policies/facing_y_turnriver_high_price_v1.json"
+    assert meta["spot_policy_digest"] == expected_digest
+
+
 def test_preflop_threebet_size(monkeypatch: pytest.MonkeyPatch) -> None:
     repo = Path(__file__).resolve().parents[1]
     ruleset = (repo / "specs" / "rulesets" / "internal_ruleset_v1.json").read_bytes()
     import json
 
     ruleset_obj = json.loads(ruleset)
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=5,
@@ -257,7 +332,7 @@ def test_preflop_threebet_size(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_preflop_fourbet_uses_freqs() -> None:
     repo = Path(__file__).resolve().parents[1]
     ruleset_obj = json.loads((repo / "specs" / "rulesets" / "internal_ruleset_v1.json").read_text())
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=5,
@@ -306,7 +381,7 @@ def test_preflop_fourbet_uses_freqs() -> None:
 def test_preflop_open_can_decline_when_freq_low() -> None:
     repo = Path(__file__).resolve().parents[1]
     ruleset_obj = json.loads((repo / "specs" / "rulesets" / "internal_ruleset_v1.json").read_text())
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=3,
@@ -355,7 +430,7 @@ def test_postflop_fallback_multiway(monkeypatch: pytest.MonkeyPatch) -> None:
     import json
 
     ruleset_obj = json.loads(ruleset)
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=2,
@@ -405,11 +480,69 @@ def test_postflop_fallback_multiway(monkeypatch: pytest.MonkeyPatch) -> None:
         assert act["target_total_commit_chips"] <= 500
 
 
+def test_postflop_facing_bet_trace_keeps_turn_support_clamp_bound(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(system_policy_mod, "solve_postflop_pyo3", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
+    monkeypatch.setattr(system_policy_mod, "estimate_equity", lambda **_: 0.58)
+
+    repo = Path(__file__).resolve().parents[1]
+    ruleset_obj = json.loads((repo / "specs" / "rulesets" / "internal_ruleset_v1.json").read_text())
+    pol_spec = _load_test_policy_spec(repo)
+    _digest, paths_trace = _paths_trace_for_system_policy()
+    policy_fn, _meta = build_system_policy(
+        seat_id=3,
+        seed=11,
+        policy_spec=pol_spec,
+        ruleset=ruleset_obj,
+        paths_trace=paths_trace,
+        strict_mode=False,
+    )
+    legal_actions = [
+        {"kind": "FOLD", "target_total_commit_chips": 0},
+        {"kind": "CALL", "target_total_commit_chips": 200},
+        {"kind": "RAISE", "target_total_commit_chips": 500},
+        {"kind": "RAISE", "target_total_commit_chips": 700},
+    ]
+    snapshot = {
+        "street": "FLOP",
+        "actor_seat": 3,
+        "players_alive_count": 3,
+        "pot_chips": 800,
+        "to_call_chips": 200,
+        "actor_commit_chips": 0,
+        "actor_stack_chips": 2200,
+        "min_raise_to_chips": 400,
+        "max_raise_to_chips": 2200,
+        "legal_actions_digest": "",
+        "observation_digest": "",
+    }
+    observation = {
+        "button_seat": 1,
+        "actor_seat": 3,
+        "seats_in_hand": [1, 2, 3],
+        "hole_cards_by_seat": {"3": ["As", "Kd"]},
+        "board_cards": ["Jh", "Tc", "2h"],
+    }
+
+    act = policy_fn(
+        {
+            "decision_id": 41,
+            "state_hash": "trace-bind",
+            "snapshot": snapshot,
+            "observation": observation,
+            "legal_actions": legal_actions,
+            "seat_id": 3,
+        }
+    )
+
+    assert act["kind"] in ("FOLD", "CALL", "RAISE")
+    assert act["target_total_commit_chips"] in (0, 200, 500, 700)
+
+
 def test_postflop_solver_success(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(system_policy_mod, "solve_postflop_pyo3", lambda **_: {"target_total_commit_chips": 300})
     repo = Path(__file__).resolve().parents[1]
     ruleset_obj = json.loads((repo / "specs" / "rulesets" / "internal_ruleset_v1.json").read_text())
-    pol_spec = load_policy_spec(repo / "specs" / "policies" / "system_bot_policy_v1.json")
+    pol_spec = _load_test_policy_spec(repo)
     _digest, paths_trace = _paths_trace_for_system_policy()
     policy_fn, _meta = build_system_policy(
         seat_id=2,

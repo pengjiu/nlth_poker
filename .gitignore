@@ -1,24 +1,68 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local secrets / env files
+.env
+.env.*
+
+# Python caches / envs
 __pycache__/
 *.py[cod]
+*.pyd
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-
+.hypothesis/
+.tox/
+.nox/
 .venv/
+venv/
+env/
 .pip-cache/
 .pycache/
 .coverage
+.coverage.*
+coverage.xml
 htmlcov/
-
-artifacts/
-tmp/
-.cargo/
-
-node_modules/
+.python-version
+*.egg-info/
+.eggs/
+build/
 dist/
-.tsbuildinfo
 
+# Local analysis / graph outputs
+.pydeps/
+
+# Rust / native build outputs
+.cargo/
 target/
+poker2/engines/postflop_pyo3/rs/target/
+tools/.venv_maturin/
 Cargo.lock
 
-.DS_Store
+# Project-local runtime outputs
+/tmp/
+/artifacts/
+/worktrees/
+
+# Generated loop snapshots / one-off experiment specs
+specs/policies/system_bot_policy_v3_loop_*_smoke_*.json
+specs/policies/system_bot_policy_v3_loop_*_smoke_fast_*.json
+specs/policies/system_bot_policy_v3_loop_*_smoke_iter_*.json
+specs/policies/system_bot_policy_v3_loop_*_locktest.json
+specs/policy_params/*loop_*_smoke_*.json
+specs/policy_params/*loop_*_smoke_*.params.json
+specs/policy_params/*loop_*_smoke_fast_*.json
+specs/policy_params/*loop_*_smoke_fast_*.params.json
+specs/policy_params/*loop_*_smoke_iter_*.json
+specs/policy_params/*loop_*_smoke_iter_*.params.json
+specs/policy_params/*loop_*_locktest*.json
+specs/policy_params/*loop_*_locktest*.params.json
+specs/spot_policies/generated/
+
+# Logs / one-off local dumps
+*.log

@@ -1,0 +1,17 @@
+{
+  "goal_pack_id": "loop_goal_pack_top_human_v1",
+  "description": "Target gates and promotion thresholds for robust top-human convergence loop.",
+  "target_gates": {
+    "coinpoker_tierA_min_bb100": 0.0,
+    "coinpoker_tierP_min_bb100": 0.0,
+    "coinpoker_pool_weighted_min_bb100": 0.0,
+    "coinpoker_br_worst_min_bb100": 0.0,
+    "gg_tierA_min_bb100": 0.0,
+    "gg_tierP_min_bb100": 0.0
+  },
+  "promotion_gates": {
+    "quick_min_delta": 0.25,
+    "full_min_delta": 0.1,
+    "regress_tolerance": 0.15
+  }
+}

@@ -2,7 +2,7 @@
 
 > 目标：用**最少**规则把实现落到“可运行 + 可回放 + 可门禁”的状态，并避免后续反复修基础一致性。
 >
-> 唯一规范来源：`ARCHIETECTURE.md.md` 的 **Normative 区（第 3–7 章 + 0.3 权威锚点表）**。
+> 唯一规范来源：`ARCHIETECTURE.md` 的 **Normative 区（第 3–7 章 + 0.3 权威锚点表）**。
 
 ---
 
@@ -136,96 +136,9 @@
 
 ---
 
-## 7) 迭代心得必读（每次改动前先读、改完后更新）
+## 7) 迭代协议（唯一权威来源）
 - 路径：`notes/iteration_journal.md`
-- 作用：记录当前最强基线（v5v）、近期退化原因、必守的改动流程守则、以及每次评测后的总结。所有改动前必须先阅读；每次评测后把结论追加进去，形成可追溯经验库。
+- 作用：**基线定义、评测矩阵、证据格式与结果摘要**的唯一权威来源。
+- 要求：每次改动前必读；每次评测后必须按模板追加 1 条结果摘要。
 
 > 只要严格按本文件 + 架构指南的权威锚点实现，系统就能做到：**一致性可执法、回归不可退化、跨语言不漂移**。
-
----
-
-## 7) 迭代改进记录协议（轻量必做）
-
-> 用**最小成本**保证“可复现、可定位、可执法、可回归”，避免补丁式改动。
-
-### Baseline（必须）
-
-```
-policy_id: <commit_hash 或 policy_hash>
-scenario_id: <ruleset_hash / env_hash / scenario_id>
-opponent_suite_id: <opp_suite_hash>
-actionspace_id: <bins_hash>
-run_id: <timestamp+seed+git_short>
-options_hash: <options_hash>
-event_stream_digest: <event_stream_digest>
-report_ref: <artifact_ref 或 report 路径>
-```
-
-要求：上述字段必须能在日志/报告/manifest 中查到，或由 `options_hash` 反推；否则视为不可复现。
-
-### Evidence（只写 3 条，必须可定位）
-
-每条使用同一格式：
-```
-bucket_key | metric=value | n=? | seed=? | evidence_ref=?
-```
-
-E1：位置×街×Facing 的最差桶  
-E2：SPR 最差桶（可带 `oop_multi_street=Y/N`）  
-E3：人数桶最差（2p/3p/4p…）
-
-规则：
-- 只用报告/回放统计口径（不允许推测）
-- 必须带 `n` 与 `seed`
-- `evidence_ref` 必须能在 report/eventstream 中 `rg` 到（结构化 key 优先）
-
-### Change（最多 2 个提案）
-
-每个提案结构：
-```
-change_1:
-  type: Define | Refine | Enforce | Restructure
-  objects: [<契约对象1>, <契约对象2>]  # 最多 2 个
-  principle: <一句第一性原理描述：EV/信息价值/约束一致性/多人风险折价等>
-  expected_generalization: <为何跨平台/跨对手仍成立，1–2 句>
-  implementation_notes: <最多 5 行，只写机制，不写调参>
-```
-
-禁止：为了某个桶修复而写“如果 X 就禁止 Y”这类补丁式策略。
-
-### Gate / Invariant（只允许 1 条，必须是“机制不变量” Fail‑Fast）
-
-```
-gate_id: CONTRACT_<ONE_THING>
-scope: <preflop | postflop | settlement | solver_io | options>
-condition: <纯契约条件，不含策略阈值>
-on_fail_output: {gate_id, reason_code, evidence_ref, snapshot_keys[]}
-```
-
-允许的 Gate 类型（只选一种）：
-- CONTRACT_ACTION_LEGALITY
-- CONTRACT_LEDGER_CONSISTENCY
-- CONTRACT_STRATEGY_DISTRIBUTION
-- CONTRACT_RULESET_CLOSURE
-- CONTRACT_SOLVER_IO
-
-明确禁止：`raise_edge<=0 就不许 raise` 等策略禁令式 Gate。
-
-### Regression（最小矩阵，但必须 2 seeds）
-
-```
-matrix: seed(2000,2001) × opp(<oppA>,<oppB>) × rules(<rake0>,<rakeX 或 anteX>)
-hands_per_cell: 300–500
-pass_criteria:
-  invariant: all gates PASS
-  stability: 不出现方向性崩溃（bb/100 由正转负且 |Δ|>=50，
-            或 non_showdown_bb/100 / showdown_bb/100 单项恶化 >=100）
-  comparators: 与 baseline 同矩阵对比（必须同 *_id）
-```
-
-### Result（只写 2 行）
-
-```
-fix: PASS | FAIL
-side_effect: <若有，指向 bucket_key + n + seed；无则写 “none observed under regression matrix”>
-```

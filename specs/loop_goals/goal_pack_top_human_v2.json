@@ -1,0 +1,88 @@
+{
+  "goal_pack_id": "loop_goal_pack_top_human_v2",
+  "description": "Strong-and-robust sub-top-human pack for single-machine iteration: high floors with tighter regression and holdout guards.",
+  "target_gates": {
+    "coinpoker_tierA_min_bb100": 26.0,
+    "coinpoker_tierP_min_bb100": 19.0,
+    "coinpoker_pool_weighted_min_bb100": 15.5,
+    "coinpoker_br_worst_min_bb100": 12.5,
+    "gg_tierA_min_bb100": 9.0,
+    "gg_tierP_min_bb100": 7.0
+  },
+  "robust_gates": [
+    {
+      "gate_key": "coinpoker_tierA_seed_min_bb100",
+      "metric_path": "coinpoker.tierA_seed_min",
+      "op": "gte",
+      "threshold": 0.5
+    },
+    {
+      "gate_key": "coinpoker_tierP_seed_min_bb100",
+      "metric_path": "coinpoker.tierP_seed_min",
+      "op": "gte",
+      "threshold": 0.5
+    },
+    {
+      "gate_key": "coinpoker_tierA_seed_std_bb100",
+      "metric_path": "coinpoker.tierA_std",
+      "op": "lte",
+      "threshold": 18.0
+    },
+    {
+      "gate_key": "coinpoker_tierP_seed_std_bb100",
+      "metric_path": "coinpoker.tierP_std",
+      "op": "lte",
+      "threshold": 14.0
+    },
+    {
+      "gate_key": "coinpoker_tierP_facingY_turnriver_worst_bb100",
+      "metric_path": "coinpoker.tierP_facingY_turnriver_worst_bb100",
+      "op": "gte",
+      "threshold": -220.0
+    },
+    {
+      "gate_key": "coinpoker_tierP_facingY_turnriver_worst_hands",
+      "metric_path": "coinpoker.tierP_facingY_turnriver_worst_hands",
+      "op": "gte",
+      "threshold": 50.0
+    },
+    {
+      "gate_key": "coinpoker_tierP_facingY_turnriver_high_support_guard",
+      "metric_path": "coinpoker.tierP_facingY_turnriver_high_support_guard",
+      "op": "gte",
+      "threshold": 1.0
+    },
+    {
+      "gate_key": "gg_tierA_seed_min_bb100",
+      "metric_path": "gg.tierA_seed_min",
+      "op": "gte",
+      "threshold": -1.0
+    },
+    {
+      "gate_key": "gg_tierP_seed_min_bb100",
+      "metric_path": "gg.tierP_seed_min",
+      "op": "gte",
+      "threshold": -1.0
+    },
+    {
+      "gate_key": "gg_tierA_seed_std_bb100",
+      "metric_path": "gg.tierA_std",
+      "op": "lte",
+      "threshold": 24.0
+    },
+    {
+      "gate_key": "gg_tierP_seed_std_bb100",
+      "metric_path": "gg.tierP_std",
+      "op": "lte",
+      "threshold": 24.0
+    }
+  ],
+  "promotion_gates": {
+    "quick_min_delta": 0.3,
+    "full_min_delta": 0.2,
+    "regress_tolerance": 0.15,
+    "holdout_regress_tolerance": 0.1,
+    "holdout_phase1_required": true,
+    "holdout_phase2_on_promotion": true
+  }
+}

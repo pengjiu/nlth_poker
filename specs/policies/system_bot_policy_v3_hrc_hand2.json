@@ -1,0 +1,54 @@
+{
+  "policy_deps": [
+    {
+      "artifact_ref": "artifact://b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932",
+      "digest": {
+        "alg": "sha256",
+        "hex": "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/settings.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "34105cd7772bae6fbfd131adb0836951944829da122ee341b7d4f541193b4774"
+      }
+    },
+    {
+      "artifact_ref": "artifact://013a5b1a4f2e1d7422327cf18de589751f4e2d642003bc207a8891bfee3937d4",
+      "digest": {
+        "alg": "sha256",
+        "hex": "013a5b1a4f2e1d7422327cf18de589751f4e2d642003bc207a8891bfee3937d4"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/preflop_ranges_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "4272ee067c0b5a0162d9b1f45bb66696fc57f911987ca6b24cfd03167d7bc610"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/preflop_freq_v1_hrc_hand2.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "9bd5e8cf4ee0c7a8746d8eb2c8d3605ea12e49b4777f79b47c9511ea46f557b8"
+      }
+    },
+    {
+      "artifact_ref": "path:mw_strategy/mw_strategy_table_rake_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "38533cc2333b630ce99271af2e88bc21f0db5858a1e6bab36d4518648886c025"
+      }
+    }
+  ],
+  "policy_kind": "baseline",
+  "policy_params_digest": {
+    "alg": "sha256",
+    "hex": "7f63239b7a6421f2bc4dfa1f142aeb6ea016b64d95773fd3c03224166e9a833a"
+  },
+  "stochastic": false,
+  "policy_label": "system_bot_policy_v3_hrc_hand2",
+  "policy_id": "51fb6c0bad4d6724d09af940dfcf695cb8b37dbb4e4827787a706e28de74f715"
+}

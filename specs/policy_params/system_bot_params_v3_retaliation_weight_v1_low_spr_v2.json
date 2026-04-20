@@ -1,0 +1,17 @@
+{
+  "params_schema_id": "system_bot_params_v5",
+  "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
+  "retaliation_model_ref": "path:artifacts/retaliation_model_v1.json",
+  "retaliation_weight_bp": 350,
+  "retaliation_prior_count": 8,
+  "hu_range_enable_bp": 10000,
+  "hu_mixed_strategy_bp": 10000,
+  "hu_rollout_enable_bp": 10000,
+  "hu_rollout_std_beta_bp": 2500,
+  "hu_solver_gap_enable_bp": 10000,
+  "hu_rollout_samples": 48,
+  "opponent_pool_ref": "path:specs/opponents/pools/system_bot_pool_v2.json",
+  "facing_low_spr_threshold_bp": 400,
+  "facing_low_spr_defend_scale_bp": 8000,
+  "facing_low_spr_raise_share_cap_bp": 1000
+}

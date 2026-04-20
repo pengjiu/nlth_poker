@@ -1,5 +1,5 @@
 {
-  "abstraction_hash": "7da5cdd8012cae37510c4d8180bb3a69d46628bfe6ba03e0440b386694b5f439",
+  "abstraction_hash": "414b9bfc0695f554ff7b5cd7e08d8ff977e9ff94eec407e70c47d1052616f751",
   "label": "gg_7max_mw_v3_actionspace",
   "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
   "opponent_suite_id": "9073ac1652ac08cd400cb7aebad17d5b601142432bf49889358a623e8a302775",
@@ -20,14 +20,14 @@
     }
   },
   "ruleset_id": "95bf8f01ccc69c7eb5199bbc45b07fd0dce04d5dc83fb064a713d9530a9a5661",
-  "scenario_family_key": "4d67789b97927c973f2661638fbfa8d4fd47d59e404b0fe920a79fc362ed27a9",
-  "scenario_id": "f5718e799bf125145d8bba9ccc27277cfc506fbaa4d4d8d5a98aa71942fd5e7f",
+  "scenario_family_key": "8f6a54034d73f288874534cecbb9cacc80310f8916898d3c346683e8be13d88d",
+  "scenario_id": "67785357887111277923d3bdfb5ff528707f5baeb4e1f93b5cc63cc7966dc870",
   "scenario_schema_id": "scenario_spec_v1",
   "schema_hash": "43faa234b264b41ffcfafb2462638b93aac60e4f4570a893e2f7bb229ac4a6de",
   "triad": {
-    "action_bins_id": "0cf03edecaa9b2e9ea723f1292b54211ae6312783d08ce18ba4c059a8323d3d2",
+    "action_bins_id": "62a7467051b18b47167f42da5e600508b8a44e029a94781acbf88fed2c953b01",
     "obs_schema_id": "c5a709e2f24573aecbf740fdd51f5106ba396540b8060a335361d24cb76427ac",
     "rake_id": "ca9bc1f6f6b7c353cf8b85bd69dce48e521693253a2fd0af840de4cec9af443f"
   },
-  "scenario_family_id": "4d67789b97927c973f2661638fbfa8d4fd47d59e404b0fe920a79fc362ed27a9"
+  "scenario_family_id": "8f6a54034d73f288874534cecbb9cacc80310f8916898d3c346683e8be13d88d"
 }

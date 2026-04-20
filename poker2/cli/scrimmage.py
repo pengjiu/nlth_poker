@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,11 @@ from poker2.protocol.paths import default_paths_config, resolve_paths, validate_
 from poker2.protocol.policy import load_policy_spec, policy_id
 from poker2.protocol.profile import load_profile_spec, profile_id
 from poker2.protocol.provenance import build_provenance_envelope_v1, provenance_id
+from poker2.protocol.forced_bets import (
+    ForcedBetsSpecError,
+    ante_display_value,
+    expected_forced_bets_by_seat,
+)
 from poker2.protocol.run_id import run_id_v1
 from poker2.protocol.ruleset import ruleset_id, ruleset_rake_id, validate_ruleset
 from poker2.protocol.schema_contract import schema_hash
@@ -37,6 +43,9 @@ from poker2.tools.report_analyzer import ScrimmageReportAnalyzer
 from poker2.tools.iteration_protocol import build_iteration_protocol, validate_iteration_protocol
 from poker2.cli.hrc_import_ruleset import import_ruleset_from_hrc_settings
 from poker2.engines.postflop_solver import compute_postflop_solver_build_id, postflop_solver_src_root_from_paths_trace
+
+
+ARTIFACT_MODE_VALUES = ("full", "lean")
 
 
 def _parse_stacks(raw: str | None) -> dict[int, int]:
@@ -176,8 +185,7 @@ def _render_text_report(
 ) -> str:
     sb = ruleset["blinds"]["sb_chips"]
     bb = ruleset["blinds"]["bb_chips"]
-    ante_cfg = (ruleset.get("ante") or {})
-    ante = ante_cfg.get("amount_chips") or ante_cfg.get("ante_chips") or 0
+    ante = ante_display_value(ruleset=ruleset, seats_in_hand=seats, strict_mode=False)
     rake = ruleset.get("rake", {})
     rake_rate = (rake.get("pct_ppm", 0) or 0) / 1_000_000.0
     rake_cap = rake.get("cap_chips")
@@ -215,7 +223,7 @@ def _render_text_report(
     lines.append("== Environment ==")
     stack_bb = float(analysis.get("starting_stack_bb", 0.0) or 0.0)
     lines.append(
-        f"players {len(seats)} sb {sb:.1f} bb {bb:.1f} ante {ante:.1f} stack_bb {stack_bb:.2f} "
+        f"players {len(seats)} sb {sb:.1f} bb {bb:.1f} ante {ante} stack_bb {stack_bb:.2f} "
         f"rake_rate {rake_rate:.3f} rake_cap {float(rake_cap) if rake_cap is not None else 0.0} no_flop_no_drop {no_flop_no_drop}"
     )
     lines.append(
@@ -225,7 +233,7 @@ def _render_text_report(
                 ["players", len(seats)],
                 ["sb", f"{sb:.1f}"],
                 ["bb", f"{bb:.1f}"],
-                ["ante", f"{ante:.1f}"],
+                ["ante", str(ante)],
                 ["stack_bb", f"{stack_bb:.2f}"],
                 ["rake_rate", f"{rake_rate:.3f}"],
                 ["rake_cap", f"{float(rake_cap) if rake_cap is not None else 0.0:.1f}"],
@@ -1069,8 +1077,6 @@ def _analyze_events(
     blinds = ruleset.get("blinds") or {}
     sb = int(blinds.get("sb_chips", 0) or 0)
     bb_chips = int(bb or blinds.get("bb_chips", 0) or 0)
-    ante_cfg = (ruleset.get("ante") or {})
-    ante_amt = int(ante_cfg.get("amount_chips") or ante_cfg.get("ante_chips") or 0)
     rake_cfg = (ruleset.get("rake") or {}) if isinstance(ruleset, dict) else {}
     rake_cap = rake_cfg.get("cap_chips")
 
@@ -1167,6 +1173,19 @@ def _analyze_events(
     defense_trace_total = 0
     solver_ev_trace_hits = 0
     solver_ev_trace_by_street: dict[str, int] = {s: 0 for s in ("PREFLOP", "FLOP", "TURN", "RIVER")}
+    adaptive_trace_total = 0
+    adaptive_expert_counts: dict[str, int] = {"anchor": 0, "tight_defense": 0, "pressure": 0}
+    adaptive_force_anchor_hits = 0
+    adaptive_alpha_ppm_sum = 0
+    adaptive_alpha_ppm_count = 0
+    adaptive_conf_ppm_sum = 0
+    adaptive_conf_ppm_count = 0
+    adaptive_samples_sum = 0
+    adaptive_samples_count = 0
+    high_price_low_spr_hits = 0
+    high_price_low_spr_by_street: dict[str, int] = {s: 0 for s in ("PREFLOP", "FLOP", "TURN", "RIVER")}
+    high_price_low_spr_price_sum_ppm = 0
+    high_price_low_spr_penalty_sum_ppm = 0
     raise_cap_marginal_total = 0
     raise_cap_marginal_hits = 0
     raise_cap_marginal_by_street: dict[str, dict[str, int]] = {s: {"total": 0, "hits": 0} for s in ("PREFLOP", "FLOP", "TURN", "RIVER")}
@@ -1230,9 +1249,11 @@ def _analyze_events(
     showdown_profit_chips = 0
     non_showdown_profit_chips = 0
 
-    sb_count = bb_count = 0
     model_forced_total = 0
     model_forced_expected_total = 0
+    model_ante_total = 0
+    model_ante_expected_total = 0
+    table_ante_expected_total = 0
     forced_mismatch_count = 0
     forced_mismatch_max = 0
     starting_stack_bb = None
@@ -1385,6 +1406,7 @@ def _analyze_events(
                 "bb_flat_street_info": {},
                 "flop_suit_texture": None,
                 "flop_rank_texture": None,
+                "forced_by_kind": {},
             }
             if isinstance(current_hand["button_seat"], int) and isinstance(model_seat, int):
                 try:
@@ -1393,6 +1415,21 @@ def _analyze_events(
                     current_hand["position"] = "OTHERS"
             decision_snap.clear()
             decision_obs.clear()
+
+        elif ev == "ForcedBets" and current_hand is not None:
+            kind = e.get("kind")
+            by_seat = e.get("by_seat_amount_chips")
+            if not isinstance(kind, str) or not isinstance(by_seat, dict):
+                continue
+            amt_obj = by_seat.get(str(model_seat), 0)
+            try:
+                amt = int(amt_obj or 0)
+            except Exception:
+                amt = 0
+            if amt < 0:
+                amt = 0
+            forced_kind_map = current_hand.setdefault("forced_by_kind", {})
+            forced_kind_map[kind] = int(forced_kind_map.get(kind, 0) or 0) + amt
 
         elif ev == "DecisionPoint":
             key = _decision_key(e)
@@ -1545,6 +1582,39 @@ def _analyze_events(
                     st["agg"] += 1
                 if derived.get("is_allin"):
                     st["allin"] += 1
+                trace = None
+                try:
+                    trace = (e.get("proposed_action") or {}).get("policy_trace")
+                except Exception:
+                    trace = None
+                if isinstance(trace, dict) and trace.get("adaptive_trace_schema_id") == "adaptive_trace_v1":
+                    adaptive_trace_total += 1
+                    expert_name = trace.get("adaptive_expert")
+                    if isinstance(expert_name, str) and expert_name in adaptive_expert_counts:
+                        adaptive_expert_counts[expert_name] = int(adaptive_expert_counts.get(expert_name, 0)) + 1
+                    if bool(trace.get("adaptive_force_anchor")):
+                        adaptive_force_anchor_hits += 1
+                    try:
+                        alpha_ppm = int(trace.get("adaptive_alpha_ppm"))
+                    except Exception:
+                        alpha_ppm = None
+                    if alpha_ppm is not None:
+                        adaptive_alpha_ppm_sum += alpha_ppm
+                        adaptive_alpha_ppm_count += 1
+                    try:
+                        conf_ppm = int(trace.get("adaptive_conf_ppm"))
+                    except Exception:
+                        conf_ppm = None
+                    if conf_ppm is not None:
+                        adaptive_conf_ppm_sum += conf_ppm
+                        adaptive_conf_ppm_count += 1
+                    try:
+                        sample_count = int(trace.get("adaptive_samples"))
+                    except Exception:
+                        sample_count = None
+                    if sample_count is not None:
+                        adaptive_samples_sum += sample_count
+                        adaptive_samples_count += 1
 
                 if current_hand is not None and street == "PREFLOP":
                     sr_val = 0
@@ -1600,11 +1670,6 @@ def _analyze_events(
                         ms["mdf_adj_sum"] += mdf_adj
                     price = to_call / max(1.0, float(pot_for_mdf + to_call))
                     price_bucket = _price_bucket(price)
-                    trace = None
-                    try:
-                        trace = (e.get("proposed_action") or {}).get("policy_trace")
-                    except Exception:
-                        trace = None
                     if isinstance(trace, dict) and trace.get("trace_schema_id") == "defense_trace_v1":
                         pos_trace = trace.get("pos_key")
                         pos_use = pos_trace if pos_trace in ("SB", "BB") else (current_hand or {}).get("position")
@@ -1618,6 +1683,22 @@ def _analyze_events(
                                 solver_ev_trace_hits += 1
                                 if street in solver_ev_trace_by_street:
                                     solver_ev_trace_by_street[street] += 1
+                            if trace.get("high_price_low_spr_hit"):
+                                high_price_low_spr_hits += 1
+                                if street in high_price_low_spr_by_street:
+                                    high_price_low_spr_by_street[street] += 1
+                                try:
+                                    price_ppm = int(trace.get("high_price_low_spr_price_ppm"))
+                                except Exception:
+                                    price_ppm = None
+                                try:
+                                    penalty_ppm = int(trace.get("high_price_low_spr_penalty_ppm"))
+                                except Exception:
+                                    penalty_ppm = None
+                                if price_ppm is not None:
+                                    high_price_low_spr_price_sum_ppm += price_ppm
+                                if penalty_ppm is not None:
+                                    high_price_low_spr_penalty_sum_ppm += penalty_ppm
                             cap_marginal_ppm = trace.get("raise_cap_marginal_ppm")
                             if cap_marginal_ppm is not None:
                                 raise_cap_marginal_total += 1
@@ -1862,14 +1943,6 @@ def _analyze_events(
             hands += 1
             seats_this = current_hand.get("seats_in_hand") or []
             btn = current_hand.get("button_seat")
-            sb_seat = bb_seat = None
-            if btn in seats_this and len(seats_this) >= 2:
-                try:
-                    idx = seats_this.index(btn)
-                    sb_seat = seats_this[(idx + 1) % len(seats_this)]
-                    bb_seat = seats_this[(idx + 2) % len(seats_this)]
-                except Exception:
-                    sb_seat = bb_seat = None
 
             initial_stacks = e.get("initial_stacks_by_seat") or {}
             if starting_stack_bb is None and str(model_seat) in initial_stacks:
@@ -2031,17 +2104,41 @@ def _analyze_events(
 
             forced_map = e.get("forced_bets_total_by_seat") or {}
             actual_forced = int(forced_map.get(str(model_seat), 0) or 0)
-            expected_forced = 0
-            if model_seat in seats_this:
-                expected_forced += ante_amt
-                if model_seat == sb_seat:
-                    expected_forced += sb
-                    sb_count += 1
-                if model_seat == bb_seat:
-                    expected_forced += bb_chips
-                    bb_count += 1
+            forced_kind_map = current_hand.get("forced_by_kind") or {}
+            actual_ante = int(forced_kind_map.get("ante", 0) or 0)
+            expected_forced = actual_forced
+            expected_ante = actual_ante
+            expected_table_ante = actual_ante
+            try:
+                stack_by_seat: dict[int, int] = {}
+                if isinstance(initial_stacks, dict):
+                    for seat in seats_this:
+                        stack_obj = initial_stacks.get(str(seat))
+                        if isinstance(stack_obj, bool) or not isinstance(stack_obj, int):
+                            continue
+                        stack_by_seat[seat] = int(stack_obj)
+                if (
+                    isinstance(btn, int)
+                    and len(seats_this) >= 2
+                    and len(stack_by_seat) == len(seats_this)
+                ):
+                    forced_expect = expected_forced_bets_by_seat(
+                        ruleset=ruleset,
+                        seats_in_hand=[int(s) for s in seats_this],
+                        button_seat=btn,
+                        starting_stacks_by_seat=stack_by_seat,
+                        strict_mode=False,
+                    )
+                    expected_forced = int(forced_expect["total_by_seat"].get(model_seat, 0))
+                    expected_ante = int(forced_expect["ante_by_seat"].get(model_seat, 0))
+                    expected_table_ante = int(sum(int(v) for v in forced_expect["ante_by_seat"].values()))
+            except ForcedBetsSpecError:
+                pass
             model_forced_total += actual_forced
             model_forced_expected_total += expected_forced
+            model_ante_total += actual_ante
+            model_ante_expected_total += expected_ante
+            table_ante_expected_total += expected_table_ante
             diff_forced = actual_forced - expected_forced
             if diff_forced != 0:
                 forced_mismatch_count += 1
@@ -2170,10 +2267,10 @@ def _analyze_events(
     forced_expected_bb = model_forced_expected_total / bb_chips if bb_chips else 0.0
     forced_mismatch_bb = (model_forced_total - model_forced_expected_total) / bb_chips if bb_chips else 0.0
     forced_mismatch_max_bb = forced_mismatch_max / bb_chips if bb_chips else 0.0
-    model_ante_chips = model_forced_total - sb_count * sb - bb_count * bb_chips
+    model_ante_chips = model_ante_total
     model_ante_bb = model_ante_chips / bb_chips if bb_chips else 0.0
-    ante_expected_bb = (ante_amt * hands) / bb_chips if bb_chips else 0.0
-    ante_total_bb = (ante_amt * seats_count * hands) / bb_chips if bb_chips else 0.0
+    ante_expected_bb = model_ante_expected_total / bb_chips if bb_chips else 0.0
+    ante_total_bb = table_ante_expected_total / bb_chips if bb_chips else 0.0
 
     winrate = win_hands / max(1, hands)
 
@@ -2195,6 +2292,7 @@ def _analyze_events(
             "count": count,
             "avg_bb": (sum_bb / max(1, count)) if count else 0.0,
         }
+    decisions_total = sum(int((st or {}).get("dec", 0) or 0) for st in street_stats.values())
 
     return {
         "hands": hands,
@@ -2250,6 +2348,22 @@ def _analyze_events(
         "solver_ev_trace_hits": solver_ev_trace_hits,
         "solver_ev_trace_rate": solver_ev_trace_hits / max(1, defense_trace_total),
         "solver_ev_trace_by_street": solver_ev_trace_by_street,
+        "adaptive_trace_total": adaptive_trace_total,
+        "adaptive_trace_rate_vs_decisions": adaptive_trace_total / max(1, decisions_total),
+        "adaptive_expert_counts": adaptive_expert_counts,
+        "adaptive_force_anchor_hits": adaptive_force_anchor_hits,
+        "adaptive_force_anchor_rate": adaptive_force_anchor_hits / max(1, adaptive_trace_total),
+        "adaptive_alpha_ppm_avg": (adaptive_alpha_ppm_sum // adaptive_alpha_ppm_count) if adaptive_alpha_ppm_count else None,
+        "adaptive_conf_ppm_avg": (adaptive_conf_ppm_sum // adaptive_conf_ppm_count) if adaptive_conf_ppm_count else None,
+        "adaptive_samples_avg": (adaptive_samples_sum // adaptive_samples_count) if adaptive_samples_count else None,
+        "high_price_low_spr_hits": high_price_low_spr_hits,
+        "high_price_low_spr_hits_by_street": high_price_low_spr_by_street,
+        "high_price_low_spr_price_ppm_avg": (high_price_low_spr_price_sum_ppm // high_price_low_spr_hits)
+        if high_price_low_spr_hits
+        else None,
+        "high_price_low_spr_penalty_ppm_avg": (high_price_low_spr_penalty_sum_ppm // high_price_low_spr_hits)
+        if high_price_low_spr_hits
+        else None,
         "raise_cap_marginal_total": raise_cap_marginal_total,
         "raise_cap_marginal_hits": raise_cap_marginal_hits,
         "raise_cap_marginal_rate": raise_cap_marginal_hits / max(1, raise_cap_marginal_total),
@@ -2457,7 +2571,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
     p.add_argument("--scenario", default="coinpoker_7max_mw_v3_actionspace_v2")
     p.add_argument("--profile", default="internal_profile_v1")
     p.add_argument("--policy", default="system_bot_policy_v3")
-    p.add_argument("--opponents", default="system_bot_league_7max_frozen_v1")
+    p.add_argument("--opponents", default="system_bot_league_7max_frozen_v3")
     p.add_argument("--settings", type=Path, default=None, help="HRC settings.json; overrides scenario ruleset")
     p.add_argument("--rounding-mode", choices=ROUNDING_MODE_VALUES, default=None, help="Required when --settings is used")
     p.add_argument(
@@ -2476,8 +2590,20 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
     default_solver_root = Path(__file__).resolve().parents[1] / "engines" / "postflop_pyo3" / "rs"
     p.add_argument("--postflop-solver-root", type=Path, default=default_solver_root)
     p.add_argument("--strong-rule-bots", action=argparse.BooleanOptionalAction, default=True)
+    p.add_argument("--quiet", action="store_true", help="Suppress stdout report output")
     p.add_argument("--out-dir", type=Path, required=True)
+    p.add_argument(
+        "--artifact-mode",
+        choices=ARTIFACT_MODE_VALUES,
+        default=os.environ.get("SCRIMMAGE_ARTIFACT_MODE", "full"),
+        help="full keeps all files; lean keeps only scrimmage_report.json",
+    )
     args = p.parse_args(argv)
+    artifact_mode = str(args.artifact_mode).lower()
+    if artifact_mode not in ARTIFACT_MODE_VALUES:
+        artifact_mode = "full"
+    save_eventstream = artifact_mode == "full"
+    save_aux_reports = artifact_mode == "full"
 
     starting_stacks = _parse_stacks(args.stacks)
     seats = sorted(starting_stacks.keys())
@@ -2628,8 +2754,12 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
         paths_trace=paths_trace,
         strict_mode=True,
     )
-    if solver_build_id is None:
-        solver_build_id = system_meta.get("solver_build_id")
+    solver_build_id_from_policy = system_meta.get("solver_build_id")
+    if isinstance(solver_build_id_from_policy, str):
+        solver_build_id = solver_build_id_from_policy
+    adaptation_digest_from_policy = system_meta.get("adaptation_digest")
+    if not isinstance(adaptation_digest_from_policy, str):
+        adaptation_digest_from_policy = None
 
     run_closure = {
         "scenario_id": scenario_id_hex,
@@ -2645,7 +2775,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
         "mw_ladder_id": closure.get("mw_ladder_id"),
         "belief_spec_id": None,
         "mw_risk_spec_id": None,
-        "adaptation_digest": None,
+        "adaptation_digest": adaptation_digest_from_policy,
         "engine_build_id": None,
         "solver_build_id": solver_build_id,
         "pokerkit_version": None,
@@ -2713,7 +2843,11 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
     out_dir = args.out_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     ev_path = out_dir / "scrimmage_eventstream.ndjson"
-    ev_path.write_text("\n".join(json.dumps(o, ensure_ascii=False, separators=(",", ":")) for o in objs) + "\n", encoding="utf-8")
+    if save_eventstream:
+        with ev_path.open("w", encoding="utf-8") as f:
+            for obj in objs:
+                f.write(json.dumps(obj, ensure_ascii=False, separators=(",", ":")))
+                f.write("\n")
 
     # Aggregate winnings from HandEnd events.
     delta_by_seat: dict[int, int] = {s: 0 for s in seats}
@@ -2816,15 +2950,16 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
             "button_seat": args.button_seat,
             "starting_stacks_by_seat": starting_stacks,
             "resolved_paths_digest": resolved_paths_digest,
-            "adaptation_digest": None,
+            "adaptation_digest": adaptation_digest_from_policy,
             "bench_overrides": None,
             "paths_config_roots": paths_config.get("roots"),
             "settings_ref": str(args.settings) if use_hrc else None,
         },
-        "event_stream_ref": f"path:{ev_path}",
+        "event_stream_ref": f"path:{ev_path}" if save_eventstream else None,
         "report_ref": report_ref,
         "analysis": analysis,
         "baseline": baseline,
+        "artifact_mode": artifact_mode,
     }
 
     views_builder = ScrimmageReportViews(report)
@@ -2836,31 +2971,53 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover
     report["iteration_protocol_errors"] = protocol_errors
 
     (out_dir / "scrimmage_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-    (out_dir / "scrimmage_views.json").write_text(json.dumps(views, ensure_ascii=False, indent=2), encoding="utf-8")
-    (out_dir / "scrimmage_views.txt").write_text(views_builder.render_text(), encoding="utf-8")
-    analyzer = ScrimmageReportAnalyzer(report)
-    insights = analyzer.to_structured(min_severity="low", include_tables=True)
-    (out_dir / "scrimmage_insights.json").write_text(json.dumps(insights, ensure_ascii=False, indent=2), encoding="utf-8")
-    text_report = _render_text_report(
-        ruleset=ruleset,
-        action_bins=action_bins,
-        seats=seats,
-        hands=hands_played,
-        seat_results=delta_by_seat,
-        total_rake_chips=total_rake,
-        model_wins=model_hand_wins,
-        model_ties=model_hand_ties,
-        dp_info={},  # simplified
-        actions=action_records,
-        analysis=analysis,
-        seat_meta=seat_meta,
-        iteration_protocol=iteration_protocol,
-    )
-    (out_dir / "scrimmage_report.txt").write_text(text_report, encoding="utf-8")
+    if save_aux_reports:
+        (out_dir / "scrimmage_views.json").write_text(json.dumps(views, ensure_ascii=False, indent=2), encoding="utf-8")
+        (out_dir / "scrimmage_views.txt").write_text(views_builder.render_text(), encoding="utf-8")
+        analyzer = ScrimmageReportAnalyzer(report)
+        insights = analyzer.to_structured(min_severity="low", include_tables=True)
+        (out_dir / "scrimmage_insights.json").write_text(json.dumps(insights, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    text_report: str | None = None
+    if save_aux_reports or (not args.quiet):
+        text_report = _render_text_report(
+            ruleset=ruleset,
+            action_bins=action_bins,
+            seats=seats,
+            hands=hands_played,
+            seat_results=delta_by_seat,
+            total_rake_chips=total_rake,
+            model_wins=model_hand_wins,
+            model_ties=model_hand_ties,
+            dp_info={},  # simplified
+            actions=action_records,
+            analysis=analysis,
+            seat_meta=seat_meta,
+            iteration_protocol=iteration_protocol,
+        )
+    if save_aux_reports and isinstance(text_report, str):
+        (out_dir / "scrimmage_report.txt").write_text(text_report, encoding="utf-8")
     if protocol_errors:
         raise ValueError(f"Iteration protocol validation failed: {protocol_errors}")
-    print(json.dumps(report, ensure_ascii=False, indent=2))
-    print("\n" + text_report)
+    if not args.quiet:
+        if text_report is None:
+            text_report = _render_text_report(
+                ruleset=ruleset,
+                action_bins=action_bins,
+                seats=seats,
+                hands=hands_played,
+                seat_results=delta_by_seat,
+                total_rake_chips=total_rake,
+                model_wins=model_hand_wins,
+                model_ties=model_hand_ties,
+                dp_info={},
+                actions=action_records,
+                analysis=analysis,
+                seat_meta=seat_meta,
+                iteration_protocol=iteration_protocol,
+            )
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        print("\n" + text_report)
     return 0
 
 

@@ -1,0 +1,54 @@
+{
+  "policy_deps": [
+    {
+      "artifact_ref": "artifact://b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932",
+      "digest": {
+        "alg": "sha256",
+        "hex": "b5b176e877cc4fbd2e1ea07dcf1fc0746c7781e6c01063bc81de0cb545003932"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/settings.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "34105cd7772bae6fbfd131adb0836951944829da122ee341b7d4f541193b4774"
+      }
+    },
+    {
+      "artifact_ref": "artifact://013a5b1a4f2e1d7422327cf18de589751f4e2d642003bc207a8891bfee3937d4",
+      "digest": {
+        "alg": "sha256",
+        "hex": "013a5b1a4f2e1d7422327cf18de589751f4e2d642003bc207a8891bfee3937d4"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/preflop_ranges_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "4272ee067c0b5a0162d9b1f45bb66696fc57f911987ca6b24cfd03167d7bc610"
+      }
+    },
+    {
+      "artifact_ref": "path:preflop/preflop_freq_v1_tight.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "5a6088e5db32ddb226909b6c0ba63ef35b981f3192d5b012d1e5551517f751b5"
+      }
+    },
+    {
+      "artifact_ref": "path:mw_strategy/mw_strategy_table_rake_v1.json",
+      "digest": {
+        "alg": "sha256",
+        "hex": "38533cc2333b630ce99271af2e88bc21f0db5858a1e6bab36d4518648886c025"
+      }
+    }
+  ],
+  "policy_kind": "baseline",
+  "policy_params_digest": {
+    "alg": "sha256",
+    "hex": "0c30f17a90358a5e94aacda22f148796a6c2e69c997f5d0786f33600e8e8d664"
+  },
+  "stochastic": false,
+  "policy_label": "system_bot_policy_v3_retaliation_weight_v1_high_price_raise_penalty_v1",
+  "policy_id": "eed65022047c14b470cbe2a56969e7cd4b0dba2f6f6eddf96134cbb910c45be7"
+}

@@ -13,6 +13,8 @@ from poker2.contractkit.run_vectors import main as contractkit_vectors_main
 from poker2.evaluation.fixtures.pack import FixturesPackError, validate_pack
 from poker2.gates import GateCheckError, check_eventstream_gates
 from poker2.gates.common import failure
+from poker2.gates.preflop_freq_gate import check_preflop_freq_gate
+from poker2.gates.preflop_ranges_gate import check_preflop_ranges_gate
 from poker2.gates.scenario_package_gate import check_scenario_package_gate
 from poker2.protocol.eventstream import EventStreamError, event_stream_digest_from_file, read_ndjson
 from poker2.protocol.abstraction import abstraction_hash
@@ -598,6 +600,28 @@ def _cmd_scenario_gate(
         return 2
 
 
+def _cmd_preflop_freq_gate(preflop_freq: Path, *, strict: bool) -> int:
+    try:
+        failures = check_preflop_freq_gate(preflop_freq_path=preflop_freq, strict_mode=strict)
+    except GateCheckError as e:
+        _print({"status": "fail", "gate_id": "Gates.PreflopFreq", "error": {"code": e.code, "message": e.message, "details": e.details}})
+        return 1
+    status = "pass" if not failures else "fail"
+    _print({"status": status, "gate_id": "Gates.PreflopFreq", "failures": failures})
+    return 0 if not failures else 1
+
+
+def _cmd_preflop_ranges_gate(preflop_ranges: Path, *, strict: bool) -> int:
+    try:
+        failures = check_preflop_ranges_gate(preflop_ranges_path=preflop_ranges, strict_mode=strict)
+    except GateCheckError as e:
+        _print({"status": "fail", "gate_id": "Gates.PreflopRanges", "error": {"code": e.code, "message": e.message, "details": e.details}})
+        return 1
+    status = "pass" if not failures else "fail"
+    _print({"status": status, "gate_id": "Gates.PreflopRanges", "failures": failures})
+    return 0 if not failures else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -650,6 +674,14 @@ def main(argv: list[str] | None = None) -> int:
     p_scenario_gate.add_argument("--paths-config", type=Path, default=None)
     p_scenario_gate.add_argument("--strict", action=argparse.BooleanOptionalAction, default=True)
 
+    p_preflop_gate = sub.add_parser("preflop-freq-gate")
+    p_preflop_gate.add_argument("--preflop-freq", type=Path, required=True)
+    p_preflop_gate.add_argument("--strict", action=argparse.BooleanOptionalAction, default=True)
+
+    p_preflop_ranges_gate = sub.add_parser("preflop-ranges-gate")
+    p_preflop_ranges_gate.add_argument("--preflop-ranges", type=Path, required=True)
+    p_preflop_ranges_gate.add_argument("--strict", action=argparse.BooleanOptionalAction, default=True)
+
     p_opt = sub.add_parser("options-hash-from-hrc")
     p_opt.add_argument("--settings", type=Path, required=True)
     p_opt.add_argument("--strict", action=argparse.BooleanOptionalAction, default=True, help="RunSpec strict_mode")
@@ -693,6 +725,10 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_fixtures_pack_gates(args.pack, ruleset_path=args.ruleset, strict=args.strict)
     if args.cmd == "scenario-gate":
         return _cmd_scenario_gate(args.scenario, ruleset_path=args.ruleset, paths_config_path=args.paths_config, strict=args.strict)
+    if args.cmd == "preflop-freq-gate":
+        return _cmd_preflop_freq_gate(args.preflop_freq, strict=args.strict)
+    if args.cmd == "preflop-ranges-gate":
+        return _cmd_preflop_ranges_gate(args.preflop_ranges, strict=args.strict)
     if args.cmd == "options-hash-from-hrc":
         return _cmd_options_hash_from_hrc(
             args.settings,

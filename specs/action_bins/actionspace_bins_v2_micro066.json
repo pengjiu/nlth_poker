@@ -1,0 +1,8 @@
+{
+  "action_bins_schema_id": "action_bins_spec_v1",
+  "include_min_raise_to": true,
+  "include_max_raise_to": true,
+  "include_extra_raise_to": true,
+  "bet_bins_ppm": [250000, 330000, 500000, 660000, 1000000, 1500000],
+  "raise_bins_ppm": [330000, 500000, 660000, 1000000, 1500000]
+}

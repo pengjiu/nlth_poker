@@ -1,0 +1,16 @@
+{
+  "pool_schema_id": "opponent_pool_v1",
+  "label": "system_bot_pool_v2",
+  "candidates": [
+    {"suite": "system_bot_league_7max_elite_reg_v1", "weight": 1.0, "role": "elite_reg"},
+    {"suite": "system_bot_league_7max_aggressive_reg_v1", "weight": 0.9, "role": "aggressive_reg"},
+    {"suite": "system_bot_league_7max_frozen_v3", "weight": 0.9, "role": "pressure"},
+    {"suite": "system_bot_league_7max_frozen_v2", "weight": 0.6, "role": "stability"},
+    {"suite": "system_bot_league_7max_frozen_v1", "weight": 0.4, "role": "baseline"}
+  ],
+  "holdout": [
+    {"suite": "rule_suite_7max_strong_v1", "role": "holdout_rule_strong"},
+    {"suite": "system_bot_league_7max_v1", "role": "holdout_legacy_league"}
+  ],
+  "notes": "PSRO-lite 对手池（新增 elite/aggressive reg），用于可剥削度压力评估与权重更新。"
+}

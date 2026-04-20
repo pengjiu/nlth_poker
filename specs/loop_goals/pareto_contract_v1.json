@@ -1,0 +1,103 @@
+{
+  "schema_id": "ralph_pareto_contract_v1",
+  "description": "Pareto objective contract for loop adoption. Objectives are maximized. Hard constraints prevent catastrophic regressions while allowing trade-offs on non-dominance frontier.",
+  "objectives": [
+    {
+      "key": "coin_tierA_mean",
+      "metric_path": "coinpoker.tierA_mean",
+      "direction": "max",
+      "weight": 1.0,
+      "reference": 0.0
+    },
+    {
+      "key": "coin_tierP_mean",
+      "metric_path": "coinpoker.tierP_mean",
+      "direction": "max",
+      "weight": 1.0,
+      "reference": 0.0
+    },
+    {
+      "key": "coin_pool_weighted_mean",
+      "metric_path": "coinpoker.pool_weighted_mean",
+      "direction": "max",
+      "weight": 1.0,
+      "reference": 0.0
+    },
+    {
+      "key": "coin_br_worst_mean",
+      "metric_path": "coinpoker.br_worst_mean",
+      "direction": "max",
+      "weight": 1.0,
+      "reference": 0.0
+    },
+    {
+      "key": "gg_tierA_mean",
+      "metric_path": "gg.tierA_mean",
+      "direction": "max",
+      "weight": 1.0,
+      "reference": 0.0
+    },
+    {
+      "key": "gg_tierP_mean",
+      "metric_path": "gg.tierP_mean",
+      "direction": "max",
+      "weight": 1.0,
+      "reference": 0.0
+    }
+  ],
+  "hard_constraints": [
+    {
+      "gate_key": "coin_br_non_negative",
+      "metric_path": "coinpoker.br_worst_mean",
+      "op": "gte",
+      "threshold": 12.5
+    },
+    {
+      "gate_key": "coin_pool_floor",
+      "metric_path": "coinpoker.pool_weighted_mean",
+      "op": "gte",
+      "threshold": 14.0
+    },
+    {
+      "gate_key": "coin_tierA_std_cap",
+      "metric_path": "coinpoker.tierA_std",
+      "op": "lte",
+      "threshold": 24.0
+    },
+    {
+      "gate_key": "coin_tierP_std_cap",
+      "metric_path": "coinpoker.tierP_std",
+      "op": "lte",
+      "threshold": 20.0
+    },
+    {
+      "gate_key": "coin_facing_worst_floor",
+      "metric_path": "coinpoker.tierP_facingY_turnriver_worst_bb100",
+      "op": "gte",
+      "threshold": -550.0
+    },
+    {
+      "gate_key": "coin_facing_support_min",
+      "metric_path": "coinpoker.tierP_facingY_turnriver_worst_hands",
+      "op": "gte",
+      "threshold": 40.0
+    },
+    {
+      "gate_key": "gg_tierP_seed_min_floor",
+      "metric_path": "gg.tierP_seed_min",
+      "op": "gte",
+      "threshold": -25.0
+    },
+    {
+      "gate_key": "gg_tierP_std_cap",
+      "metric_path": "gg.tierP_std",
+      "op": "lte",
+      "threshold": 25.0
+    }
+  ],
+  "promotion": {
+    "require_nondominated": true,
+    "min_hv_delta": 0.0,
+    "dominance_epsilon": 0.05
+  }
+}

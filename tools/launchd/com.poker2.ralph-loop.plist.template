@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.poker2.ralph-loop</string>
+
+  <key>WorkingDirectory</key>
+  <string>__ROOT__</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>PATH=/opt/miniconda3/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin PYTHON_BIN=/opt/miniconda3/bin/python CHECK_SEC=30 MISS_THRESHOLD=3 RESTART_COOLDOWN_SEC=180 COMPONENT_MAX_STALE_SEC=300 STARTUP_GRACE_SEC=240 tools/ralph_time_hook.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/tmp/ralph_launchd.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/ralph_launchd.err</string>
+</dict>
+</plist>

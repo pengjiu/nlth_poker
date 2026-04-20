@@ -1,0 +1,14 @@
+{
+  "pool_schema_id": "opponent_pool_v1",
+  "label": "system_bot_pool_v1",
+  "candidates": [
+    {"suite": "system_bot_league_7max_frozen_v3", "weight": 1.0, "role": "pressure"},
+    {"suite": "system_bot_league_7max_frozen_v2", "weight": 0.7, "role": "stability"},
+    {"suite": "system_bot_league_7max_frozen_v1", "weight": 0.5, "role": "baseline"}
+  ],
+  "holdout": [
+    {"suite": "system_bot_league_7max_frozen_v2", "role": "holdout_stability"},
+    {"suite": "system_bot_league_7max_frozen_v1", "role": "holdout_baseline"}
+  ],
+  "notes": "对手池用于 PSRO-lite 评测；weights 只作为评测混合权重，不用于单局内动态切换。"
+}

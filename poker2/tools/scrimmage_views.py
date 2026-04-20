@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from poker2.protocol.forced_bets import ante_display_value
+
 
 def _rate(num: float, denom: float) -> float:
     return float(num) / max(1.0, float(denom))
@@ -36,12 +38,22 @@ class ScrimmageReportViews:
         bet_bins = action_bins.get("bet_bins") or []
         raise_bins = action_bins.get("raise_bins") or []
         seats = self.report.get("seat_results") or []
-        ante = ante_cfg.get("amount_chips") or ante_cfg.get("ante_chips") or 0
+        seats_in_hand = [int(row.get("seat")) for row in seats if isinstance(row, dict) and isinstance(row.get("seat"), int)]
+        if seats_in_hand:
+            ante_display = ante_display_value(
+                ruleset={"ante": ante_cfg},
+                seats_in_hand=seats_in_hand,
+                strict_mode=False,
+            )
+        else:
+            ante_display = "0"
+        ante_uniform = ante_cfg.get("ante_chips") if isinstance(ante_cfg, dict) else None
         return {
             "players": len(seats),
             "sb": int(blinds.get("sb_chips", 0) or 0),
             "bb": int(blinds.get("bb_chips", self.report.get("bb_chips", 0)) or 0),
-            "ante": int(ante or 0),
+            "ante": int(ante_uniform or 0),
+            "ante_display": ante_display,
             "stack_bb": float(self.analysis.get("starting_stack_bb", 0.0) or 0.0),
             "rake_rate": (rake_cfg.get("pct_ppm", 0) or 0) / 1_000_000.0,
             "rake_cap": int(rake_cfg.get("cap_chips", 0) or 0),

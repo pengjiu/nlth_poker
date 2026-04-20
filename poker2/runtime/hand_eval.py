@@ -172,3 +172,57 @@ def estimate_equity(
             wins += 1.0 / (1.0 + tie_count)
 
     return wins / float(samples)
+
+
+def estimate_equity_vs_range(
+    *,
+    hero_hole: Sequence[tuple[int, str]],
+    board: Sequence[tuple[int, str]],
+    opponent_holes: Sequence[Sequence[tuple[int, str]]],
+    samples: int,
+    seed: int,
+) -> float:
+    """
+    Estimate equity vs a fixed opponent range (HU only).
+    Falls back to uniform sampling if the range is empty.
+    """
+    if samples <= 0:
+        return 0.0
+    if not opponent_holes:
+        return estimate_equity(
+            hero_hole=hero_hole,
+            board=board,
+            opponents=1,
+            samples=samples,
+            seed=seed,
+        )
+
+    used = set(hero_hole) | set(board)
+    rng = random.Random(seed)
+    wins = 0.0
+    opp_choices = [tuple(h) for h in opponent_holes if len(h) == 2]
+    if not opp_choices:
+        return estimate_equity(
+            hero_hole=hero_hole,
+            board=board,
+            opponents=1,
+            samples=samples,
+            seed=seed,
+        )
+    for _ in range(samples):
+        opp = rng.choice(opp_choices)
+        if set(opp) & used:
+            # Skip invalid opponent hole cards; resample.
+            continue
+        used_full = used | set(opp)
+        deck = [c for c in _FULL_DECK if c not in used_full]
+        draw_cnt = max(0, 5 - len(board))
+        picks = rng.sample(deck, draw_cnt)
+        board_fill = list(board) + picks
+        hero_rank = best_hand_rank(list(hero_hole) + board_fill)
+        opp_rank = best_hand_rank(list(opp) + board_fill)
+        if hero_rank > opp_rank:
+            wins += 1.0
+        elif hero_rank == opp_rank:
+            wins += 0.5
+    return wins / float(samples)

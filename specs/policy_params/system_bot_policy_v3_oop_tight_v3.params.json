@@ -1,0 +1,15 @@
+{
+  "policy_params_schema_id": "system_policy_params_v3",
+  "mw_strategy_table_digest": {
+    "alg": "sha256",
+    "hex": "38533cc2333b630ce99271af2e88bc21f0db5858a1e6bab36d4518648886c025"
+  },
+  "mw_ladder_id": "6fc4b293dc3000d180b0a89cf4a6a4a6e4112ee9fea467defc0c98b10f9b2d30",
+  "multiway_version": "v3",
+  "system_bot_params_digest": {
+    "alg": "sha256",
+    "hex": "fae92bbb6715cff07e584f1492c03fd7490e069be1c7585f2fd9e3458b072a3f"
+  },
+  "postflop_solver_build_id": "c45abf498dba6426b4ddd8af921ffa9d2067c782e82d1f4a6eeea4c30428e24d",
+  "notes": "system_bot_policy_v3 params + OOP risk tighten v3 (realization=20, mw default)"
+}

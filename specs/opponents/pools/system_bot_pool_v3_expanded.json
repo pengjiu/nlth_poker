@@ -1,0 +1,21 @@
+{
+  "pool_schema_id": "opponent_pool_v1",
+  "label": "system_bot_pool_v3_expanded",
+  "candidates": [
+    {"suite": "system_bot_league_7max_elite_reg_v1", "weight": 1.0, "role": "elite_reg"},
+    {"suite": "system_bot_league_7max_aggressive_reg_v1", "weight": 0.9, "role": "aggressive_reg"},
+    {"suite": "system_bot_league_7max_frozen_v3", "weight": 0.9, "role": "pressure"},
+    {"suite": "system_bot_league_7max_frozen_v2", "weight": 0.6, "role": "stability"},
+    {"suite": "system_bot_league_7max_frozen_v1", "weight": 0.4, "role": "baseline"},
+    {"suite": "system_bot_league_7max_v1", "weight": 0.5, "role": "legacy"},
+    {"suite": "rule_suite_7max_strong_v1", "weight": 0.4, "role": "rule_strong"},
+    {"suite": "rule_suite_7max_reg_v2", "weight": 0.4, "role": "rule_reg"},
+    {"suite": "rule_suite_7max_v2", "weight": 0.3, "role": "rule_mix"},
+    {"suite": "rule_suite_7max_v1", "weight": 0.2, "role": "rule_base"}
+  ],
+  "holdout": [
+    {"suite": "system_bot_league_7max_frozen_v1", "role": "holdout_baseline"},
+    {"suite": "rule_suite_7max_strong_v1", "role": "holdout_rule_strong"}
+  ],
+  "notes": "扩展对手分布：加入 rule 套件与 legacy 套件，用于更贴近真实多样分布的 pool_eval。"
+}

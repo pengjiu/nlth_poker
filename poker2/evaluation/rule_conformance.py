@@ -11,6 +11,7 @@ from typing import Any, Iterable
 
 from poker2.contractkit import validate_digest_object
 from poker2.protocol.eventstream import EventStreamError, event_stream_digest_from_file, read_ndjson
+from poker2.protocol.forced_bets import ForcedBetsSpecError, expected_forced_bets_by_seat
 from poker2.protocol.rake import RakeError, compute_total_rake_chips
 from poker2.protocol.report_schema import RULE_CONFORMANCE_CHECKED_ITEM_VALUES
 from poker2.protocol.ruleset import RuleSetError, ruleset_id, validate_ruleset
@@ -452,6 +453,7 @@ def _check_forced_bets(
     hand_id: str,
     hand_events: list[dict[str, Any]],
     ruleset: dict[str, Any],
+    strict_mode: bool,
     event_stream_ref: str,
     event_stream_digest: dict[str, Any],
 ) -> list[dict[str, Any]]:
@@ -493,36 +495,58 @@ def _check_forced_bets(
             )
         ]
 
+    failures: list[dict[str, Any]] = []
+
     # Aggregate ForcedBets amounts by kind.
     forced_by_kind: dict[str, dict[int, int]] = {}
     for e in _iter_events(hand_events, "ForcedBets"):
         kind = _as_str(e.get("kind"), field="ForcedBets.kind")
         by_seat = _seatmap(e.get("by_seat_amount_chips"), field="ForcedBets.by_seat_amount_chips")
-        forced_by_kind[kind] = by_seat
+        if kind in forced_by_kind:
+            failures.append(
+                _failure(
+                    event_stream_ref=event_stream_ref,
+                    event_stream_digest=event_stream_digest,
+                    hand_id=hand_id,
+                    item="forced_bets",
+                    reason="forced_bets_kind_duplicate",
+                    observed={"kind": kind},
+                )
+            )
+            existing = forced_by_kind[kind]
+            for seat, amt in by_seat.items():
+                existing[seat] = int(existing.get(seat, 0)) + int(amt)
+            continue
+        forced_by_kind[kind] = dict(by_seat)
 
-    failures: list[dict[str, Any]] = []
-
-    blinds = ruleset.get("blinds", {})
-    sb = _as_int(blinds.get("sb_chips"), field="ruleset.blinds.sb_chips")
-    bb = _as_int(blinds.get("bb_chips"), field="ruleset.blinds.bb_chips")
-
-    if len(seats) == 2:
-        sb_seat = button_seat
-        bb_seat = next(s for s in seats if s != button_seat)
-    else:
-        sb_seat = _rotate_next_seat(seats, button_seat)
-        bb_seat = _rotate_next_seat(seats, sb_seat) if sb_seat is not None else None
-    if sb_seat is None or bb_seat is None:
+    try:
+        expected_forced = expected_forced_bets_by_seat(
+            ruleset=ruleset,
+            seats_in_hand=seats,
+            button_seat=button_seat,
+            starting_stacks_by_seat=None,
+            strict_mode=strict_mode,
+        )
+    except ForcedBetsSpecError as e:
         failures.append(
             _failure(
                 event_stream_ref=event_stream_ref,
                 event_stream_digest=event_stream_digest,
                 hand_id=hand_id,
                 item="forced_bets",
-                reason="cannot_locate_blinds",
+                reason="forced_bets_spec_invalid",
+                observed={"code": e.code, "message": e.message},
             )
         )
         return failures
+
+    sb_seat = _as_int(expected_forced.get("sb_seat"), field="forced_bets.sb_seat")
+    bb_seat = _as_int(expected_forced.get("bb_seat"), field="forced_bets.bb_seat")
+    expected_ante_by_seat = _as_obj(expected_forced.get("ante_by_seat"), field="forced_bets.ante_by_seat")
+
+    blinds = ruleset.get("blinds", {})
+    sb = _as_int(blinds.get("sb_chips"), field="ruleset.blinds.sb_chips")
+    bb = _as_int(blinds.get("bb_chips"), field="ruleset.blinds.bb_chips")
 
     sb_evt = forced_by_kind.get("sb", {})
     bb_evt = forced_by_kind.get("bb", {})
@@ -598,43 +622,7 @@ def _check_forced_bets(
             )
     elif isinstance(ante, dict):
         kind = ante.get("kind")
-        if kind == "uniform":
-            ante_amt = _as_int(ante.get("ante_chips"), field="ruleset.ante.ante_chips")
-            for s in seats:
-                observed = ante_evt.get(s, 0)
-                if observed < 0 or observed > ante_amt:
-                    failures.append(
-                        _failure(
-                            event_stream_ref=event_stream_ref,
-                            event_stream_digest=event_stream_digest,
-                            hand_id=hand_id,
-                            item="forced_bets",
-                            reason="ante_amount_invalid",
-                            expected={"seat": s, "amount_max": ante_amt},
-                            observed={"seat": s, "amount": observed},
-                        )
-                    )
-                    break
-        elif kind == "by_seat":
-            by_seat = _as_obj(ante.get("by_seat_ante_chips"), field="ruleset.ante.by_seat_ante_chips")
-            for s in seats:
-                key = str(s)
-                expected_amt = _as_int(by_seat.get(key, 0), field=f"ruleset.ante.by_seat_ante_chips[{key}]")
-                observed = ante_evt.get(s, 0)
-                if observed < 0 or observed > expected_amt:
-                    failures.append(
-                        _failure(
-                            event_stream_ref=event_stream_ref,
-                            event_stream_digest=event_stream_digest,
-                            hand_id=hand_id,
-                            item="forced_bets",
-                            reason="ante_amount_invalid",
-                            expected={"seat": s, "amount_max": expected_amt},
-                            observed={"seat": s, "amount": observed},
-                        )
-                    )
-                    break
-        else:
+        if kind not in ("uniform", "by_seat"):
             failures.append(
                 _failure(
                     event_stream_ref=event_stream_ref,
@@ -646,6 +634,22 @@ def _check_forced_bets(
                     observed=kind,
                 )
             )
+        for s in seats:
+            expected_amt = _as_int(expected_ante_by_seat.get(s, 0), field=f"forced_bets.ante_by_seat[{s}]")
+            observed = ante_evt.get(s, 0)
+            if observed < 0 or observed > expected_amt:
+                failures.append(
+                    _failure(
+                        event_stream_ref=event_stream_ref,
+                        event_stream_digest=event_stream_digest,
+                        hand_id=hand_id,
+                        item="forced_bets",
+                        reason="ante_amount_invalid",
+                        expected={"seat": s, "amount_max": expected_amt},
+                        observed={"seat": s, "amount": observed},
+                    )
+                )
+                break
     else:
         failures.append(
             _failure(
@@ -1014,7 +1018,16 @@ def rule_conformance_report_from_eventstream(
             failures.extend(_check_ledger(hand_id=hand_id, hand_events=he, event_stream_ref=es_ref, event_stream_digest=es_digest))
 
         if "forced_bets" in items:
-            failures.extend(_check_forced_bets(hand_id=hand_id, hand_events=he, ruleset=ruleset, event_stream_ref=es_ref, event_stream_digest=es_digest))
+            failures.extend(
+                _check_forced_bets(
+                    hand_id=hand_id,
+                    hand_events=he,
+                    ruleset=ruleset,
+                    strict_mode=strict_mode,
+                    event_stream_ref=es_ref,
+                    event_stream_digest=es_digest,
+                )
+            )
 
         if "rake" in items or "no_flop_no_drop" in items:
             failures.extend(
