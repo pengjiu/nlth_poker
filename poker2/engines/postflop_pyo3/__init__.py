@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import pathlib
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -36,6 +37,19 @@ def _solver_project_root() -> pathlib.Path:
     return _repo_root() / "poker2" / "engines" / "postflop_pyo3" / "rs"
 
 
+def _select_pyo3_root(src_root: pathlib.Path) -> pathlib.Path:
+    cargo_toml = src_root / "Cargo.toml"
+    if not cargo_toml.exists():
+        return _solver_project_root()
+    try:
+        text = cargo_toml.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        return _solver_project_root()
+    if "pyo3" not in text:
+        return _solver_project_root()
+    return src_root
+
+
 def _build_dir(build_id: str) -> pathlib.Path:
     return _repo_root() / "artifacts" / "tools" / "postflop_pyo3" / build_id
 
@@ -44,6 +58,10 @@ def _cargo_env() -> dict[str, str]:
     env = os.environ.copy()
     env["CARGO_HOME"] = str(_repo_root() / ".cargo")
     env.pop("CONDA_PREFIX", None)
+    env.setdefault("PYO3_USE_ABI3_FORWARD_COMPATIBILITY", "1")
+    venv_bin = _repo_root() / "tools" / ".venv_maturin" / "bin"
+    if (venv_bin / "maturin").exists():
+        env["PATH"] = f"{venv_bin}:{env.get('PATH', '')}"
     return env
 
 
@@ -70,7 +88,16 @@ def _ensure_pyo3_module(build_id: str, src_root: pathlib.Path) -> Any:
             import postflop_solver  # type: ignore
             return postflop_solver
         except Exception:
-            pass
+            for pattern in ("postflop_solver", "postflop_solver-*.dist-info"):
+                for item in target_py.glob(pattern):
+                    try:
+                        if item.is_dir():
+                            shutil.rmtree(item, ignore_errors=True)
+                        else:
+                            item.unlink(missing_ok=True)
+                    except Exception:
+                        continue
+    src_root = _select_pyo3_root(src_root)
     wheels_dir = build_dir / "target" / "wheels"
     cmd_build = [
         "maturin",
