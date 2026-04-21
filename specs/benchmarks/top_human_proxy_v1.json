@@ -1,0 +1,41 @@
+{
+  "benchmark_spec_schema_id": "top_human_proxy_benchmark_v1",
+  "label": "near_top_human_proxy",
+  "required_pools": [
+    "baseline",
+    "realistic",
+    "pressure",
+    "exploit"
+  ],
+  "paired_compare": {
+    "min_hands": 50000,
+    "min_lower_ci_bb100": 1.0
+  },
+  "pool_eval": {
+    "min_hands_per_pool": 50000,
+    "min_lower_ci_bb100_by_pool": {
+      "baseline": 4.0,
+      "realistic": 1.0,
+      "pressure": 0.0,
+      "exploit": 0.0
+    },
+    "max_worst_case_pool_loss_bb100": 1.0
+  },
+  "solver_gap": {
+    "max_avg_bb100": 1.5,
+    "max_p95_bb100": 5.0
+  },
+  "br_proxy": {
+    "max_risk_of_ruin": 0.05,
+    "max_drawdown_p95_buyins": 25.0
+  },
+  "calibration": {
+    "max_brier": 0.18,
+    "min_ev_sign_accuracy": 0.58
+  },
+  "coverage": {
+    "min_positions": 6,
+    "min_stack_buckets": 4,
+    "min_rake_profiles": 2
+  }
+}
